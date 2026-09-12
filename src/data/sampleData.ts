@@ -1,0 +1,501 @@
+import type { Product, Supplier, Sale, Purchase, NotificationItem, UserProfile } from '../types';
+import { updateProductStockStatus } from '../services/stockIntelligence';
+
+export const INITIAL_SUPPLIERS: Supplier[] = [
+  {
+    id: 'sup-1',
+    name: 'Royal Spices & Dry Fruits Wholesalers',
+    contactNumber: '+91 98765 43210',
+    email: 'contact@royalspices.com',
+    address: 'APMC Market Yard, Phase 2, Mumbai',
+    productsSupplied: ['Almonds', 'Cashews', 'Pistachios', 'Raisins', 'Cardamom', 'Cinnamon'],
+    totalPurchases: 450000,
+    lastPurchaseDate: '2026-09-10',
+    status: 'ACTIVE'
+  },
+  {
+    id: 'sup-2',
+    name: 'Green Harvest Groceries Distributors',
+    contactNumber: '+91 98123 88990',
+    email: 'orders@greenharvest.in',
+    address: 'Grain Market Complex, Secunderabad',
+    productsSupplied: ['Rock Sugar', 'Diamond Sugar', 'Turmeric', 'Cumin', 'Fennel'],
+    totalPurchases: 280000,
+    lastPurchaseDate: '2026-09-08',
+    status: 'ACTIVE'
+  },
+  {
+    id: 'sup-3',
+    name: 'Organic Essentials & Beverages Co.',
+    contactNumber: '+91 97711 22334',
+    email: 'info@organicessentials.com',
+    address: 'Industrial Estate, Bengaluru',
+    productsSupplied: ['Green Tea', 'Organic Honey', 'Badam Milk Mix'],
+    totalPurchases: 150000,
+    lastPurchaseDate: '2026-09-05',
+    status: 'ACTIVE'
+  }
+];
+
+const RAW_PRODUCTS: Omit<Product, 'status'>[] = [
+  {
+    id: 'prod-1',
+    name: 'Almonds (Badam)',
+    category: 'Dry Fruits',
+    description: 'Premium California Premium Almonds',
+    quantity: 2,
+    unit: 'kg',
+    purchasePrice: 650,
+    sellingPrice: 900,
+    lowStockThreshold: 10,
+    criticalStockThreshold: 3,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-2',
+    name: 'Cashews (Kaju W240)',
+    category: 'Dry Fruits',
+    description: 'Whole King-size Cashews',
+    quantity: 15,
+    unit: 'kg',
+    purchasePrice: 700,
+    sellingPrice: 950,
+    lowStockThreshold: 12,
+    criticalStockThreshold: 4,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-3',
+    name: 'Green Raisins (Kishmish)',
+    category: 'Dry Fruits',
+    description: 'Long Sweet Green Raisins',
+    quantity: 5,
+    unit: 'kg',
+    purchasePrice: 220,
+    sellingPrice: 320,
+    lowStockThreshold: 8,
+    criticalStockThreshold: 3,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-4',
+    name: 'Walnuts (Akhrot Giri)',
+    category: 'Dry Fruits',
+    description: 'Kashmiri Soft Kernel Walnuts',
+    quantity: 1.5,
+    unit: 'kg',
+    purchasePrice: 850,
+    sellingPrice: 1200,
+    lowStockThreshold: 6,
+    criticalStockThreshold: 2,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-5',
+    name: 'Pistachios (Pista Salted)',
+    category: 'Dry Fruits',
+    description: 'Roasted Salted Iranian Pistachios',
+    quantity: 22,
+    unit: 'kg',
+    purchasePrice: 900,
+    sellingPrice: 1350,
+    lowStockThreshold: 10,
+    criticalStockThreshold: 4,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-6',
+    name: 'Black Raisins',
+    category: 'Dry Fruits',
+    description: 'Seedless Premium Black Raisins',
+    quantity: 6,
+    unit: 'kg',
+    purchasePrice: 280,
+    sellingPrice: 400,
+    lowStockThreshold: 8,
+    criticalStockThreshold: 3,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-7',
+    name: 'Dried Figs (Anjeer)',
+    category: 'Dry Fruits',
+    description: 'Natural Sweet Afghan Dried Figs',
+    quantity: 0.8,
+    unit: 'kg',
+    purchasePrice: 1100,
+    sellingPrice: 1600,
+    lowStockThreshold: 5,
+    criticalStockThreshold: 1.5,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-8',
+    name: 'Kimia Dates (Khajoor)',
+    category: 'Dry Fruits',
+    description: 'Soft Iranian Fresh Kimia Dates',
+    quantity: 28,
+    unit: 'boxes',
+    purchasePrice: 180,
+    sellingPrice: 260,
+    lowStockThreshold: 10,
+    criticalStockThreshold: 5,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-9',
+    name: 'Green Cardamom (Elaichi 8mm)',
+    category: 'Spices',
+    description: 'Bold Green Kerala Cardamom',
+    quantity: 3.5,
+    unit: 'kg',
+    purchasePrice: 2200,
+    sellingPrice: 3100,
+    lowStockThreshold: 5,
+    criticalStockThreshold: 1,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-10',
+    name: 'Ceylon Cinnamon (Dalchini)',
+    category: 'Spices',
+    description: 'True Sweet Quills Cinnamon Stick',
+    quantity: 18,
+    unit: 'kg',
+    purchasePrice: 450,
+    sellingPrice: 650,
+    lowStockThreshold: 8,
+    criticalStockThreshold: 3,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-11',
+    name: 'Cloves (Laung Whole)',
+    category: 'Spices',
+    description: 'Whole Aromatic Handpicked Cloves',
+    quantity: 2.2,
+    unit: 'kg',
+    purchasePrice: 850,
+    sellingPrice: 1200,
+    lowStockThreshold: 4,
+    criticalStockThreshold: 1.5,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-12',
+    name: 'Black Pepper (Kali Mirch)',
+    category: 'Spices',
+    description: 'Malabar Garbled Black Pepper',
+    quantity: 14,
+    unit: 'kg',
+    purchasePrice: 550,
+    sellingPrice: 780,
+    lowStockThreshold: 10,
+    criticalStockThreshold: 3,
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-13',
+    name: 'Cumin Seeds (Jeera Whole)',
+    category: 'Spices',
+    description: 'Unpolished Unjha Quality Cumin',
+    quantity: 4.5,
+    unit: 'kg',
+    purchasePrice: 320,
+    sellingPrice: 480,
+    lowStockThreshold: 8,
+    criticalStockThreshold: 3,
+    supplierId: 'sup-2',
+    supplierName: 'Green Harvest Groceries Distributors',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-14',
+    name: 'Fennel Seeds (Saunf Lucknowi)',
+    category: 'Spices',
+    description: 'Thin Sweet Mukhwas Fennel',
+    quantity: 16,
+    unit: 'kg',
+    purchasePrice: 180,
+    sellingPrice: 270,
+    lowStockThreshold: 10,
+    criticalStockThreshold: 4,
+    supplierId: 'sup-2',
+    supplierName: 'Green Harvest Groceries Distributors',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-15',
+    name: 'Fenugreek Seeds (Methi Dana)',
+    category: 'Spices',
+    description: 'Cleaned Yellow Fenugreek Seeds',
+    quantity: 25,
+    unit: 'kg',
+    purchasePrice: 90,
+    sellingPrice: 140,
+    lowStockThreshold: 10,
+    criticalStockThreshold: 4,
+    supplierId: 'sup-2',
+    supplierName: 'Green Harvest Groceries Distributors',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-16',
+    name: 'Poppy Seeds (Khas Khas)',
+    category: 'Spices',
+    description: 'White Tiny Baking Poppy Seeds',
+    quantity: 1.2,
+    unit: 'kg',
+    purchasePrice: 1400,
+    sellingPrice: 1950,
+    lowStockThreshold: 4,
+    criticalStockThreshold: 1.5,
+    supplierId: 'sup-2',
+    supplierName: 'Green Harvest Groceries Distributors',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-17',
+    name: 'Bay Leaf (Tej Patta)',
+    category: 'Spices',
+    description: 'Fragrant Aromatic Dried Bay Leaves',
+    quantity: 7,
+    unit: 'packets',
+    purchasePrice: 40,
+    sellingPrice: 70,
+    lowStockThreshold: 12,
+    criticalStockThreshold: 5,
+    supplierId: 'sup-2',
+    supplierName: 'Green Harvest Groceries Distributors',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-18',
+    name: 'Rock Sugar (Dhaga Mishri)',
+    category: 'Natural Sugars',
+    description: 'Traditional Thread Rock Sugar Crystal',
+    quantity: 35,
+    unit: 'kg',
+    purchasePrice: 70,
+    sellingPrice: 110,
+    lowStockThreshold: 15,
+    criticalStockThreshold: 5,
+    supplierId: 'sup-2',
+    supplierName: 'Green Harvest Groceries Distributors',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-19',
+    name: 'Diamond Sugar Candy',
+    category: 'Natural Sugars',
+    description: 'Refined Sparkling Diamond Candy Crystals',
+    quantity: 4,
+    unit: 'kg',
+    purchasePrice: 85,
+    sellingPrice: 130,
+    lowStockThreshold: 10,
+    criticalStockThreshold: 3,
+    supplierId: 'sup-2',
+    supplierName: 'Green Harvest Groceries Distributors',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-20',
+    name: 'Organic Turmeric Powder (Haldi)',
+    category: 'Groceries',
+    description: 'High Curcumin Pure Salem Turmeric',
+    quantity: 40,
+    unit: 'kg',
+    purchasePrice: 140,
+    sellingPrice: 220,
+    lowStockThreshold: 15,
+    criticalStockThreshold: 5,
+    supplierId: 'sup-2',
+    supplierName: 'Green Harvest Groceries Distributors',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  },
+  {
+    id: 'prod-21',
+    name: 'Organic Green Tea Elaichi',
+    category: 'Beverages',
+    description: 'Whole Leaf Green Tea infused with Cardamom',
+    quantity: 8,
+    unit: 'boxes',
+    purchasePrice: 210,
+    sellingPrice: 320,
+    lowStockThreshold: 12,
+    criticalStockThreshold: 4,
+    supplierId: 'sup-3',
+    supplierName: 'Organic Essentials & Beverages Co.',
+    createdAt: '2026-09-01T10:00:00Z',
+    updatedAt: '2026-09-12T08:00:00Z'
+  }
+];
+
+// Automatically calculate dynamic stock status for each initial product
+export const INITIAL_PRODUCTS: Product[] = RAW_PRODUCTS.map(p => 
+  updateProductStockStatus(p as Product)
+);
+
+export const INITIAL_SALES: Sale[] = [
+  {
+    id: 'sale-101',
+    productId: 'prod-2',
+    productName: 'Cashews (Kaju W240)',
+    quantity: 2,
+    unit: 'kg',
+    unitPrice: 950,
+    totalAmount: 1900,
+    timestamp: new Date(Date.now() - 3600000 * 2).toISOString()
+  },
+  {
+    id: 'sale-102',
+    productId: 'prod-1',
+    productName: 'Almonds (Badam)',
+    quantity: 1,
+    unit: 'kg',
+    unitPrice: 900,
+    totalAmount: 900,
+    timestamp: new Date(Date.now() - 3600000 * 4).toISOString()
+  },
+  {
+    id: 'sale-103',
+    productId: 'prod-18',
+    productName: 'Rock Sugar (Dhaga Mishri)',
+    quantity: 5,
+    unit: 'kg',
+    unitPrice: 110,
+    totalAmount: 550,
+    timestamp: new Date(Date.now() - 3600000 * 6).toISOString()
+  },
+  {
+    id: 'sale-104',
+    productId: 'prod-9',
+    productName: 'Green Cardamom (Elaichi 8mm)',
+    quantity: 0.5,
+    unit: 'kg',
+    unitPrice: 3100,
+    totalAmount: 1550,
+    timestamp: new Date(Date.now() - 3600000 * 8).toISOString()
+  }
+];
+
+export const INITIAL_PURCHASES: Purchase[] = [
+  {
+    id: 'purch-201',
+    productId: 'prod-20',
+    productName: 'Organic Turmeric Powder (Haldi)',
+    supplierId: 'sup-2',
+    supplierName: 'Green Harvest Groceries Distributors',
+    quantity: 20,
+    unit: 'kg',
+    unitPrice: 140,
+    totalAmount: 2800,
+    timestamp: new Date(Date.now() - 86400000 * 1).toISOString()
+  },
+  {
+    id: 'purch-202',
+    productId: 'prod-5',
+    productName: 'Pistachios (Pista Salted)',
+    supplierId: 'sup-1',
+    supplierName: 'Royal Spices & Dry Fruits Wholesalers',
+    quantity: 10,
+    unit: 'kg',
+    unitPrice: 900,
+    totalAmount: 9000,
+    timestamp: new Date(Date.now() - 86400000 * 2).toISOString()
+  }
+];
+
+export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: 'notif-1',
+    type: 'CRITICAL_STOCK',
+    title: '🚨 Urgent Restock Needed: Almonds',
+    message: 'Almonds (Badam) quantity is 2 kg (Critical Threshold: 3 kg). Immediate reordering recommended.',
+    timestamp: new Date().toISOString(),
+    read: false,
+    productId: 'prod-1'
+  },
+  {
+    id: 'notif-2',
+    type: 'CRITICAL_STOCK',
+    title: '🚨 Urgent Restock Needed: Walnuts',
+    message: 'Walnuts (Akhrot Giri) quantity is 1.5 kg (Critical Threshold: 2 kg).',
+    timestamp: new Date(Date.now() - 1800000).toISOString(),
+    read: false,
+    productId: 'prod-4'
+  },
+  {
+    id: 'notif-3',
+    type: 'CRITICAL_STOCK',
+    title: '🚨 Urgent Restock Needed: Dried Figs',
+    message: 'Dried Figs (Anjeer) quantity is 0.8 kg (Critical Threshold: 1.5 kg).',
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
+    read: false,
+    productId: 'prod-7'
+  },
+  {
+    id: 'notif-4',
+    type: 'LOW_STOCK',
+    title: '⚠ Low Stock Alert: Green Raisins',
+    message: 'Green Raisins quantity is 5 kg (Low Threshold: 8 kg).',
+    timestamp: new Date(Date.now() - 7200000).toISOString(),
+    read: true,
+    productId: 'prod-3'
+  }
+];
+
+export const DEFAULT_USER_PROFILE: UserProfile = {
+  id: 'usr-1001',
+  name: 'Rajesh Kumar (Shop Manager)',
+  email: 'rajesh.smartshop@gmail.com',
+  shopName: 'AI SMART SHOP - Retail & Wholesale Spices',
+  phone: '+91 98450 11223',
+  address: 'Shop #42, APMC Grain Market, Main Road, Bengaluru',
+  role: 'Store Manager / Owner'
+};
