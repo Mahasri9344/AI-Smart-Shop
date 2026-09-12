@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useShop } from '../context/ShopContext';
 import { StatusBadge } from '../components/common/StatusBadge';
-import { Search, Plus, Trash2 } from 'lucide-react';
+import { ProductModal } from '../components/inventory/ProductModal';
+import { StockAdjustModal } from '../components/inventory/StockAdjustModal';
+import { Search, Plus, Edit2, Trash2, Sliders } from 'lucide-react';
+import type { Product } from '../types';
 
 export const Inventory: React.FC = () => {
   const { products, deleteProduct } = useShop();
@@ -9,13 +12,36 @@ export const Inventory: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
+  // Modal States
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+
+  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+  const [productToAdjust, setProductToAdjust] = useState<Product | null>(null);
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.category.toLowerCase().includes(searchTerm.toLowerCase());
+                          product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (product.supplierName && product.supplierName.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = categoryFilter === 'ALL' || product.category === categoryFilter;
     const matchesStatus = statusFilter === 'ALL' || product.status === statusFilter;
     return matchesSearch && matchesCategory && matchesStatus;
   });
+
+  const handleOpenAddModal = () => {
+    setProductToEdit(null);
+    setIsProductModalOpen(true);
+  };
+
+  const handleOpenEditModal = (p: Product) => {
+    setProductToEdit(p);
+    setIsProductModalOpen(true);
+  };
+
+  const handleOpenAdjustModal = (p: Product) => {
+    setProductToAdjust(p);
+    setIsAdjustModalOpen(true);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -29,7 +55,7 @@ export const Inventory: React.FC = () => {
           </p>
         </div>
 
-        <button className="btn btn-primary">
+        <button onClick={handleOpenAddModal} className="btn btn-primary">
           <Plus size={18} />
           <span>Add New Product</span>
         </button>
@@ -42,7 +68,7 @@ export const Inventory: React.FC = () => {
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input 
               type="text"
-              placeholder="Search products by name or category..."
+              placeholder="Search products by name, category, or supplier..."
               className="form-input"
               style={{ paddingLeft: '2.5rem' }}
               value={searchTerm}
@@ -62,6 +88,7 @@ export const Inventory: React.FC = () => {
             <option value="Groceries">Groceries</option>
             <option value="Natural Sugars">Natural Sugars</option>
             <option value="Beverages">Beverages</option>
+            <option value="Other">Other</option>
           </select>
 
           <select 
@@ -71,9 +98,9 @@ export const Inventory: React.FC = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="ALL">All Stock Statuses</option>
-            <option value="NORMAL">Normal Stock</option>
-            <option value="LOW">Low Stock</option>
-            <option value="CRITICAL">Critical Stock</option>
+            <option value="NORMAL">🟢 Normal Stock</option>
+            <option value="LOW">🟡 Low Stock</option>
+            <option value="CRITICAL">🔴 Critical Stock</option>
           </select>
         </div>
       </div>
@@ -86,9 +113,9 @@ export const Inventory: React.FC = () => {
               <th>Product Name</th>
               <th>Category</th>
               <th>Quantity</th>
+              <th>Thresholds (Low / Critical)</th>
               <th>Purchase Price</th>
               <th>Selling Price</th>
-              <th>Inventory Value</th>
               <th>Status</th>
               <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
@@ -105,28 +132,44 @@ export const Inventory: React.FC = () => {
                 <tr key={p.id}>
                   <td>
                     <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{p.name}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{p.description}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{p.description || p.supplierName}</div>
                   </td>
                   <td>{p.category}</td>
                   <td style={{ fontWeight: 800 }}>
                     {p.quantity} {p.unit}
                   </td>
+                  <td style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    Low: {p.lowStockThreshold} {p.unit} | Crit: {p.criticalStockThreshold} {p.unit}
+                  </td>
                   <td>₹{p.purchasePrice.toLocaleString('en-IN')}</td>
                   <td>₹{p.sellingPrice.toLocaleString('en-IN')}</td>
-                  <td style={{ fontWeight: 700 }}>
-                    ₹{(p.quantity * p.sellingPrice).toLocaleString('en-IN')}
-                  </td>
                   <td>
                     <StatusBadge status={p.status} />
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    <button 
-                      onClick={() => deleteProduct(p.id)}
-                      className="btn btn-danger btn-sm"
-                      title="Delete Product"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
+                      <button 
+                        onClick={() => handleOpenAdjustModal(p)}
+                        className="btn btn-secondary btn-sm"
+                        title="Adjust Stock Quantity"
+                      >
+                        <Sliders size={14} />
+                      </button>
+                      <button 
+                        onClick={() => handleOpenEditModal(p)}
+                        className="btn btn-secondary btn-sm"
+                        title="Edit Product Details"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button 
+                        onClick={() => deleteProduct(p.id)}
+                        className="btn btn-danger btn-sm"
+                        title="Delete Product"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -134,6 +177,20 @@ export const Inventory: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Product Add/Edit Modal */}
+      <ProductModal
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        productToEdit={productToEdit}
+      />
+
+      {/* Stock Adjust Modal */}
+      <StockAdjustModal
+        isOpen={isAdjustModalOpen}
+        onClose={() => setIsAdjustModalOpen(false)}
+        product={productToAdjust}
+      />
     </div>
   );
 };
