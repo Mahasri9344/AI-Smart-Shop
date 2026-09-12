@@ -6,11 +6,13 @@ import { Truck } from 'lucide-react';
 interface RecordPurchaseModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialProductId?: string;
 }
 
 export const RecordPurchaseModal: React.FC<RecordPurchaseModalProps> = ({
   isOpen,
-  onClose
+  onClose,
+  initialProductId
 }) => {
   const { products, suppliers, recordPurchase } = useShop();
 
@@ -20,17 +22,24 @@ export const RecordPurchaseModal: React.FC<RecordPurchaseModalProps> = ({
   const [unitPrice, setUnitPrice] = useState<number>(100);
 
   useEffect(() => {
-    if (products.length > 0 && !selectedProductId) {
-      setSelectedProductId(products[0].id);
-      setUnitPrice(products[0].purchasePrice);
-    }
-  }, [products, selectedProductId]);
+    if (isOpen) {
+      const targetProdId = (initialProductId && products.some(p => p.id === initialProductId))
+        ? initialProductId
+        : (products.length > 0 ? products[0].id : '');
 
-  useEffect(() => {
-    if (suppliers.length > 0 && !selectedSupplierId) {
-      setSelectedSupplierId(suppliers[0].id);
+      setSelectedProductId(targetProdId);
+
+      const prod = products.find(p => p.id === targetProdId);
+      if (prod) {
+        setUnitPrice(prod.purchasePrice);
+        if (prod.supplierId && suppliers.some(s => s.id === prod.supplierId)) {
+          setSelectedSupplierId(prod.supplierId);
+        } else if (suppliers.length > 0) {
+          setSelectedSupplierId(suppliers[0].id);
+        }
+      }
     }
-  }, [suppliers, selectedSupplierId]);
+  }, [isOpen, initialProductId, products, suppliers]);
 
   const selectedProduct = products.find(p => p.id === selectedProductId);
 
@@ -39,7 +48,7 @@ export const RecordPurchaseModal: React.FC<RecordPurchaseModalProps> = ({
     const prod = products.find(p => p.id === prodId);
     if (prod) {
       setUnitPrice(prod.purchasePrice);
-      if (prod.supplierId) {
+      if (prod.supplierId && suppliers.some(s => s.id === prod.supplierId)) {
         setSelectedSupplierId(prod.supplierId);
       }
     }
