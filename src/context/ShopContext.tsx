@@ -28,6 +28,7 @@ interface ShopContextType {
   adjustStock: (productId: string, deltaQuantity: number) => void;
   recordSale: (productId: string, quantity: number) => { success: boolean; message: string };
   recordPurchase: (productId: string, quantity: number, purchasePrice: number, supplierId: string) => void;
+  addSupplier: (supplier: Omit<Supplier, 'id' | 'totalPurchases' | 'lastPurchaseDate'>) => void;
   markNotificationAsRead: (id: string) => void;
   clearAllNotifications: () => void;
   resetToSampleData: () => void;
@@ -65,6 +66,10 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     DataService.savePurchases(purchases);
   }, [purchases]);
+
+  useEffect(() => {
+    if (suppliers.length > 0) DataService.saveSuppliers(suppliers);
+  }, [suppliers]);
 
   useEffect(() => {
     DataService.saveNotifications(notifications);
@@ -230,6 +235,16 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     adjustStock(productId, quantity);
   };
 
+  const addSupplier = (newSup: Omit<Supplier, 'id' | 'totalPurchases' | 'lastPurchaseDate'>) => {
+    const newSupplierObj: Supplier = {
+      ...newSup,
+      id: `sup-${Date.now()}`,
+      totalPurchases: 0,
+      lastPurchaseDate: new Date().toISOString().split('T')[0]
+    };
+    setSuppliers(prev => [newSupplierObj, ...prev]);
+  };
+
   const markNotificationAsRead = (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   };
@@ -271,6 +286,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         adjustStock,
         recordSale,
         recordPurchase,
+        addSupplier,
         markNotificationAsRead,
         clearAllNotifications,
         resetToSampleData
