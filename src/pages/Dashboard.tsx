@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useShop } from '../context/ShopContext';
 import { StatCard } from '../components/common/StatCard';
 import { StatusBadge } from '../components/common/StatusBadge';
+import { ProductModal } from '../components/inventory/ProductModal';
+import { RecordSaleModal } from '../components/sales/RecordSaleModal';
+import { RecordPurchaseModal } from '../components/purchases/RecordPurchaseModal';
 import { 
   Package, 
   Layers, 
@@ -35,6 +38,11 @@ export const Dashboard: React.FC = () => {
   } = useShop();
 
   const navigate = useNavigate();
+
+  // Modal States for Quick Actions
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
 
   // Filter products by critical and low status for widgets
   const criticalProducts = products.filter(p => p.status === 'CRITICAL');
@@ -104,18 +112,18 @@ export const Dashboard: React.FC = () => {
             ⚡ Quick Actions
           </div>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <Link to="/inventory" className="btn btn-secondary btn-sm">
+            <button onClick={() => setIsAddProductModalOpen(true)} className="btn btn-secondary btn-sm">
               <Plus size={16} style={{ color: 'var(--accent-primary)' }} />
               <span>Add Product</span>
-            </Link>
-            <Link to="/sales" className="btn btn-secondary btn-sm">
+            </button>
+            <button onClick={() => setIsSaleModalOpen(true)} className="btn btn-secondary btn-sm">
               <ArrowUpRight size={16} style={{ color: 'var(--status-normal)' }} />
               <span>Record Sale</span>
-            </Link>
-            <Link to="/purchases" className="btn btn-secondary btn-sm">
+            </button>
+            <button onClick={() => setIsPurchaseModalOpen(true)} className="btn btn-secondary btn-sm">
               <ArrowDownRight size={16} style={{ color: 'var(--status-low)' }} />
               <span>Record Purchase</span>
-            </Link>
+            </button>
             <Link to="/ai-assistant" className="btn btn-primary btn-sm">
               <Sparkles size={16} />
               <span>Ask AI Smart Assistant</span>
@@ -326,7 +334,7 @@ export const Dashboard: React.FC = () => {
                 🤖 Quick Stock Insights:
               </p>
               <ul style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                <li>{criticalStockCount} items need immediate restocking (Almonds, Walnuts, Figs).</li>
+                <li>{criticalStockCount} items need immediate restocking.</li>
                 <li>{lowStockCount} items are near low threshold.</li>
                 <li>{totalProducts} products tracked dynamically.</li>
               </ul>
@@ -377,6 +385,22 @@ export const Dashboard: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Interactive Modals connected to Quick Actions */}
+      <ProductModal
+        isOpen={isAddProductModalOpen}
+        onClose={() => setIsAddProductModalOpen(false)}
+      />
+
+      <RecordSaleModal
+        isOpen={isSaleModalOpen}
+        onClose={() => setIsSaleModalOpen(false)}
+      />
+
+      <RecordPurchaseModal
+        isOpen={isPurchaseModalOpen}
+        onClose={() => setIsPurchaseModalOpen(false)}
+      />
 
     </div>
   );

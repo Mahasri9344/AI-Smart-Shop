@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useShop } from '../context/ShopContext';
+import { RecordPurchaseModal } from '../components/purchases/RecordPurchaseModal';
 import { Truck, Plus } from 'lucide-react';
 
 export const Purchases: React.FC = () => {
   const { purchases, todayPurchasesAmount } = useShop();
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -13,11 +15,11 @@ export const Purchases: React.FC = () => {
             Purchase Management (Stock-In)
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
-            Record supplier purchases with automatic inventory increment
+            Record supplier purchases with automatic inventory replenishment
           </p>
         </div>
 
-        <button className="btn btn-primary">
+        <button onClick={() => setIsPurchaseModalOpen(true)} className="btn btn-primary">
           <Plus size={18} />
           <span>Record New Purchase</span>
         </button>
@@ -51,13 +53,13 @@ export const Purchases: React.FC = () => {
               {purchases.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                    No purchases recorded yet.
+                    No purchases recorded yet. Click "Record New Purchase" to add stock replenishment.
                   </td>
                 </tr>
               ) : (
                 purchases.map(p => (
                   <tr key={p.id}>
-                    <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{p.id}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{p.id}</td>
                     <td style={{ fontWeight: 600 }}>{p.productName}</td>
                     <td>{p.supplierName}</td>
                     <td>{p.quantity} {p.unit}</td>
@@ -75,6 +77,11 @@ export const Purchases: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <RecordPurchaseModal
+        isOpen={isPurchaseModalOpen}
+        onClose={() => setIsPurchaseModalOpen(false)}
+      />
     </div>
   );
 };

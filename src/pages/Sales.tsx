@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useShop } from '../context/ShopContext';
+import { RecordSaleModal } from '../components/sales/RecordSaleModal';
 import { Plus, TrendingUp } from 'lucide-react';
 
 export const Sales: React.FC = () => {
   const { sales, todaySalesAmount } = useShop();
+  const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -13,11 +15,11 @@ export const Sales: React.FC = () => {
             Sales Management
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
-            Record customer sales with automatic stock deduction
+            Record customer sales with automatic stock deduction & revenue tracking
           </p>
         </div>
 
-        <button className="btn btn-primary">
+        <button onClick={() => setIsSaleModalOpen(true)} className="btn btn-primary">
           <Plus size={18} />
           <span>Record New Sale</span>
         </button>
@@ -50,13 +52,13 @@ export const Sales: React.FC = () => {
               {sales.length === 0 ? (
                 <tr>
                   <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                    No sales recorded yet.
+                    No sales recorded yet. Click "Record New Sale" to add your first transaction.
                   </td>
                 </tr>
               ) : (
                 sales.map(s => (
                   <tr key={s.id}>
-                    <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{s.id}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{s.id}</td>
                     <td style={{ fontWeight: 600 }}>{s.productName}</td>
                     <td>{s.quantity} {s.unit}</td>
                     <td>₹{s.unitPrice.toLocaleString('en-IN')}</td>
@@ -73,6 +75,11 @@ export const Sales: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <RecordSaleModal
+        isOpen={isSaleModalOpen}
+        onClose={() => setIsSaleModalOpen(false)}
+      />
     </div>
   );
 };
