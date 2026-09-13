@@ -93,7 +93,7 @@ export const Alerts: React.FC = () => {
                     onClick={() => handleOpenReorder(prod.id)}
                     className="btn btn-sm"
                     style={{
-                      backgroundColor: isCritical ? 'var(--status-critical)' : 'var(--primary-color)',
+                      backgroundColor: isCritical ? 'var(--status-critical)' : 'var(--accent-primary)',
                       color: '#ffffff',
                       border: 'none',
                       fontWeight: 700,
@@ -104,7 +104,7 @@ export const Alerts: React.FC = () => {
                       borderRadius: 'var(--radius-sm)',
                       cursor: 'pointer',
                       fontSize: '0.8rem',
-                      boxShadow: isCritical ? '0 2px 8px rgba(239, 68, 68, 0.3)' : '0 2px 8px rgba(99, 102, 241, 0.3)'
+                      boxShadow: isCritical ? '0 2px 8px rgba(220, 38, 38, 0.2)' : '0 2px 8px rgba(15, 118, 110, 0.2)'
                     }}
                   >
                     <ShoppingCart size={14} />
@@ -155,7 +155,7 @@ export const Alerts: React.FC = () => {
                       ) : isLowAlert ? (
                         <AlertTriangle size={22} style={{ color: 'var(--status-low)' }} />
                       ) : (
-                        <Bell size={22} style={{ color: 'var(--primary-color)' }} />
+                        <Bell size={22} style={{ color: 'var(--accent-primary)' }} />
                       )}
                     </div>
                     <div>
@@ -190,7 +190,7 @@ export const Alerts: React.FC = () => {
                         onClick={() => handleOpenReorder(product.id)}
                         className="btn btn-sm"
                         style={{
-                          backgroundColor: (product.status === 'CRITICAL' || isCriticalAlert) ? 'var(--status-critical)' : 'var(--primary-color)',
+                          backgroundColor: (product.status === 'CRITICAL' || isCriticalAlert) ? 'var(--status-critical)' : 'var(--accent-primary)',
                           color: '#ffffff',
                           border: 'none',
                           fontWeight: 700,
@@ -200,7 +200,7 @@ export const Alerts: React.FC = () => {
                           padding: '0.45rem 0.85rem',
                           borderRadius: 'var(--radius-sm)',
                           cursor: 'pointer',
-                          boxShadow: (product.status === 'CRITICAL' || isCriticalAlert) ? '0 2px 8px rgba(239, 68, 68, 0.3)' : '0 2px 8px rgba(99, 102, 241, 0.3)'
+                          boxShadow: (product.status === 'CRITICAL' || isCriticalAlert) ? '0 2px 8px rgba(220, 38, 38, 0.2)' : '0 2px 8px rgba(15, 118, 110, 0.2)'
                         }}
                       >
                         <ShoppingCart size={15} />
