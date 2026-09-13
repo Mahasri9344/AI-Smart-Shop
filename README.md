@@ -292,3 +292,34 @@ The following enhancements are identified for post-prototype cloud deployment:
 ## 📄 License
 
 Developed for **AI SMART SHOP** project evaluation. All rights reserved.
+
+---
+
+## 📸 Project Screenshots
+
+### 🏠 Dashboard
+![Dashboard](dashboard.png)
+
+### 📦 Inventory Management
+![Inventory](inventory.png)
+
+### 💰 Sales Management
+![Sales](sales.png)
+
+### 🛒 Purchase Management
+![Purchases](purchases.png)
+
+### 👥 Supplier Management
+![Suppliers](suppliers.png)
+
+### 📊 Analytics
+![Analytics](analytics.png)
+
+### 🔔 Alerts & Notifications
+![Alerts](alerts.png)
+
+### 🤖 AI Assistant & Voice Interaction
+![AI Assistant](ai-assistant.png)
+
+### ➕ Add Product
+![Add Product](add%20product.png)
