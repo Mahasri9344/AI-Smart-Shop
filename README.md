@@ -156,34 +156,47 @@ $$\text{Status} = \begin{cases} \text{CRITICAL} & \text{if } \text{quantity} \le
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Structure & 16 Major Modules Map
+
+The codebase is organized into 16 clearly identifiable, modular components for seamless developer inspection:
+
+| # | Major Module | Description & Implementation Files |
+| :--- | :--- | :--- |
+| **1** | **Dashboard** | SaaS KPI overview, critical alert banner, quick actions → [`src/pages/Dashboard.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/pages/Dashboard.tsx) |
+| **2** | **Inventory** | Catalog table, stock thresholds, CRUD & quick adjust → [`src/pages/Inventory.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/pages/Inventory.tsx), [`src/components/inventory/`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/components/inventory/) |
+| **3** | **Sales** | Billing order recording with stock validation guards → [`src/pages/Sales.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/pages/Sales.tsx), [`src/components/sales/`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/components/sales/) |
+| **4** | **Purchases** | Wholesale replenishment orders & auto-stock increment → [`src/pages/Purchases.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/pages/Purchases.tsx), [`src/components/purchases/`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/components/purchases/) |
+| **5** | **Suppliers** | Vendor contacts, address directory & catalog mapping → [`src/pages/Suppliers.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/pages/Suppliers.tsx), [`src/components/suppliers/`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/components/suppliers/) |
+| **6** | **Analytics** | Profit margins, top-selling items & inventory velocity → [`src/pages/Analytics.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/pages/Analytics.tsx) |
+| **7** | **Alerts / Notifications** | Proactive stock warnings & Smart Reorder triggers → [`src/pages/Alerts.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/pages/Alerts.tsx) |
+| **8** | **AI Assistant** | Natural-language query processor engine → [`src/pages/AIAssistant.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/pages/AIAssistant.tsx), [`src/services/aiService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/aiService.ts) |
+| **9** | **Voice Recognition / TTS** | Web Speech API (`SpeechRecognition` & `SpeechSynthesis`) → [`src/services/voiceService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/voiceService.ts) |
+| **10** | **Reusable UI Components** | Header, Sidebar, StatCards, Badges, Modals → [`src/components/common/`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/components/common/) |
+| **11** | **Services / Application Logic** | Business logic & data adapters → [`src/services/`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/) |
+| **12** | **Context / State** | Central reactive `ShopContext` provider → [`src/context/ShopContext.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/context/ShopContext.tsx) |
+| **13** | **Data / Seed Storage** | Seed data adapter (21 products across 6 categories) → [`src/data/sampleData.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/data/sampleData.ts) |
+| **14** | **Types / Interfaces** | TypeScript contracts & type definitions → [`src/types/index.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/types/index.ts) |
+| **15** | **Layouts** | Main SaaS shell layout frame → [`src/layouts/MainLayout.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/layouts/MainLayout.tsx) |
+| **16** | **CSS / Styling** | Design system tokens, Light Mode UI & layout styling → [`src/index.css`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/index.css), [`src/App.css`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/App.css) |
 
 ```
 AI-Smart-Shop/
 ├── public/              # Favicon and static branding assets
 ├── src/
-│   ├── assets/          # SVG branding and graphics
-│   ├── components/      # Reusable UI component library
-│   │   ├── common/      # Header, Sidebar, StatCard, StatusBadge, Modal
-│   │   ├── inventory/   # ProductModal, StockAdjustModal
-│   │   ├── sales/       # RecordSaleModal
-│   │   ├── purchases/   # RecordPurchaseModal
-│   │   └── suppliers/   # SupplierModal
-│   ├── context/         # ShopContext (central reactive state provider)
+│   ├── assets/          # SVG branding assets
+│   ├── components/      # Reusable UI component library (common, inventory, sales, purchases, suppliers)
+│   ├── context/         # Central reactive state provider & hooks
 │   ├── data/            # Pre-seeded dataset (21 retail products across 6 categories)
 │   ├── layouts/         # MainLayout SaaS shell frame
-│   ├── pages/           # Application views (Dashboard, Inventory, Sales, Purchases,
-│   │                    # Suppliers, AIAssistant, Alerts, Analytics, Settings, Profile, Login, Signup)
+│   ├── pages/           # Module views (Dashboard, Inventory, Sales, Purchases, Suppliers, AIAssistant, Alerts, Analytics, etc.)
 │   ├── services/        # DataService, StockIntelligence, AIService, VoiceService
-│   ├── types/           # TypeScript interfaces & type definitions
-│   ├── App.tsx          # Router and application routes
-│   ├── main.tsx         # Entry point initialization
-│   └── index.css        # Global CSS design tokens and layout styling
-├── .gitignore           # Git ignore patterns
-├── package.json         # Node manifest and dependencies
-├── README.md            # Comprehensive project documentation
-├── tsconfig.json        # TypeScript configuration root
-└── vite.config.ts       # Vite bundler configuration
+│   ├── types/           # TypeScript interfaces & contracts
+│   ├── App.tsx          # Main application router
+│   ├── main.tsx         # Application entry point
+│   └── index.css        # Global CSS design system & Light Mode UI tokens
+├── vercel.json          # Vercel deployment & SPA rewrite config
+├── package.json         # Dependencies and scripts
+└── README.md            # Project documentation
 ```
 
 ---

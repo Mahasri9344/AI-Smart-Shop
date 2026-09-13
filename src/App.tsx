@@ -1,19 +1,21 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ShopProvider } from './context/ShopContext';
+import { ShopProvider } from './context';
 import { MainLayout } from './layouts/MainLayout';
-import { Dashboard } from './pages/Dashboard';
-import { Inventory } from './pages/Inventory';
-import { Sales } from './pages/Sales';
-import { Purchases } from './pages/Purchases';
-import { Suppliers } from './pages/Suppliers';
-import { AIAssistant } from './pages/AIAssistant';
-import { Alerts } from './pages/Alerts';
-import { Analytics } from './pages/Analytics';
-import { Settings } from './pages/Settings';
-import { Profile } from './pages/Profile';
-import { Login } from './pages/Login';
-import { Signup } from './pages/Signup';
+import {
+  Dashboard,
+  Inventory,
+  Sales,
+  Purchases,
+  Suppliers,
+  AIAssistant,
+  Alerts,
+  Analytics,
+  Settings,
+  Profile,
+  Login,
+  Signup
+} from './pages';
 
 export const App: React.FC = () => {
   return (
