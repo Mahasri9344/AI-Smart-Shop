@@ -300,13 +300,13 @@ export const Dashboard: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           {/* AI Assistant Quick Interface */}
-          <div className="card" style={{ background: 'linear-gradient(180deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.08) 100%)' }}>
+          <div className="card" style={{ background: 'linear-gradient(180deg, #FFFFFF 0%, #F0FDFA 100%)', borderColor: '#CCFBF1' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
               <div style={{
                 width: '38px',
                 height: '38px',
                 borderRadius: '50%',
-                background: 'var(--accent-gradient)',
+                backgroundColor: 'var(--accent-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -315,7 +315,7 @@ export const Dashboard: React.FC = () => {
                 <Bot size={22} />
               </div>
               <div>
-                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>AI SMART ASSISTANT</h4>
+                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--accent-secondary)' }}>AI SMART ASSISTANT</h4>
                 <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
                   Natural language & voice stock query
                 </p>
@@ -323,10 +323,10 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div style={{
-              backgroundColor: 'var(--bg-sidebar)',
+              backgroundColor: '#F0FDFA',
               borderRadius: 'var(--radius-md)',
               padding: '1rem',
-              border: '1px solid var(--border-color)',
+              border: '1px solid #CCFBF1',
               marginBottom: '1rem',
               fontSize: '0.88rem'
             }}>
@@ -352,7 +352,7 @@ export const Dashboard: React.FC = () => {
               <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>
                 Live Proactive Alerts
               </h4>
-              <Link to="/alerts" style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}>
+              <Link to="/alerts" style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', fontWeight: 600 }}>
                 View All ({notifications.length})
               </Link>
             </div>
@@ -364,8 +364,8 @@ export const Dashboard: React.FC = () => {
                   style={{
                     padding: '0.85rem',
                     borderRadius: 'var(--radius-md)',
-                    backgroundColor: notif.type === 'CRITICAL_STOCK' ? 'rgba(239, 68, 68, 0.1)' : 'var(--bg-sidebar)',
-                    border: `1px solid ${notif.type === 'CRITICAL_STOCK' ? 'var(--status-critical-border)' : 'var(--border-color)'}`
+                    backgroundColor: notif.type === 'CRITICAL_STOCK' ? '#FEF2F2' : '#F8FAFC',
+                    border: `1px solid ${notif.type === 'CRITICAL_STOCK' ? '#FCA5A5' : 'var(--border-color)'}`
                   }}
                 >
                   <div style={{ fontWeight: 700, fontSize: '0.85rem', color: notif.type === 'CRITICAL_STOCK' ? 'var(--status-critical)' : 'var(--text-primary)' }}>

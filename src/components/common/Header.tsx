@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             width: '36px',
             height: '36px',
             borderRadius: '50%',
-            background: 'var(--accent-gradient)',
+            backgroundColor: 'var(--accent-primary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

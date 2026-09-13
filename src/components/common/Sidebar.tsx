@@ -90,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse, m
                 marginLeft: 'auto',
                 fontSize: '0.68rem',
                 fontWeight: 800,
-                background: 'var(--accent-gradient)',
+                backgroundColor: 'var(--accent-primary)',
                 padding: '0.15rem 0.45rem',
                 borderRadius: 'var(--radius-full)',
                 color: '#fff'

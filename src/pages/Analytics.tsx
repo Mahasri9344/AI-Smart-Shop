@@ -150,7 +150,7 @@ export const Analytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="card" style={{ borderLeft: '4px solid var(--status-normal)', background: 'linear-gradient(180deg, var(--bg-card) 0%, rgba(16, 185, 129, 0.08) 100%)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--status-normal)', background: 'linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 100%)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Estimated Profit Margin

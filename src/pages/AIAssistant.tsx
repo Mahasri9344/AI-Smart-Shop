@@ -200,12 +200,12 @@ export const AIAssistant: React.FC = () => {
               style={{
                 alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
                 maxWidth: '80%',
-                backgroundColor: msg.sender === 'user' ? 'var(--accent-primary)' : 'var(--bg-sidebar)',
-                color: '#ffffff',
+                backgroundColor: msg.sender === 'user' ? 'var(--accent-primary)' : '#F0FDFA',
+                color: msg.sender === 'user' ? '#ffffff' : '#172033',
                 padding: '0.85rem 1.15rem',
                 borderRadius: 'var(--radius-lg)',
-                border: msg.sender === 'ai' ? '1px solid var(--border-color)' : 'none',
-                boxShadow: msg.sender === 'user' ? 'var(--shadow-glow-indigo)' : 'none'
+                border: msg.sender === 'ai' ? '1px solid #CCFBF1' : 'none',
+                boxShadow: msg.sender === 'user' ? '0 2px 6px rgba(15, 118, 110, 0.25)' : 'none'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>

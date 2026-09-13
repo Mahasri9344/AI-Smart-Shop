@@ -42,8 +42,8 @@ export const Alerts: React.FC = () => {
         <div 
           className="card" 
           style={{ 
-            border: '1px solid rgba(239, 68, 68, 0.3)', 
-            backgroundColor: 'rgba(239, 68, 68, 0.05)',
+            border: '1px solid #FCA5A5', 
+            backgroundColor: '#FEF2F2',
             display: 'flex',
             flexDirection: 'column',
             gap: '1rem'
@@ -143,8 +143,8 @@ export const Alerts: React.FC = () => {
                     gap: '1rem',
                     padding: '1.25rem',
                     borderRadius: 'var(--radius-md)',
-                    backgroundColor: isCriticalAlert ? 'rgba(239, 68, 68, 0.12)' : 'var(--bg-sidebar)',
-                    border: `1px solid ${isCriticalAlert ? 'var(--status-critical-border)' : 'var(--border-color)'}`,
+                    backgroundColor: isCriticalAlert ? '#FEF2F2' : '#F8FAFC',
+                    border: `1px solid ${isCriticalAlert ? '#FCA5A5' : 'var(--border-color)'}`,
                     opacity: notif.read ? 0.75 : 1
                   }}
                 >
