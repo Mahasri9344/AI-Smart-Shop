@@ -1,147 +1,83 @@
 import type { Product, Sale, Purchase, Supplier, NotificationItem, UserProfile } from '../types';
-import { 
-  INITIAL_PRODUCTS, 
-  INITIAL_SALES, 
-  INITIAL_PURCHASES, 
-  INITIAL_SUPPLIERS, 
-  INITIAL_NOTIFICATIONS, 
-  DEFAULT_USER_PROFILE 
-} from '../data/sampleData';
-import { updateProductStockStatus } from './stockIntelligence';
+import type { IShopStorageAdapter } from './storageAdapter';
+import { LocalStorageAdapter } from './localStorageAdapter';
 
-const STORAGE_KEYS = {
-  PRODUCTS: 'ai_smart_shop_products_v1',
-  SALES: 'ai_smart_shop_sales_v1',
-  PURCHASES: 'ai_smart_shop_purchases_v1',
-  SUPPLIERS: 'ai_smart_shop_suppliers_v1',
-  NOTIFICATIONS: 'ai_smart_shop_notifications_v1',
-  USER_PROFILE: 'ai_smart_shop_profile_v1'
-};
-
+/**
+ * DataService Façade & Data Access Layer.
+ * 
+ * Provides unified static access to data entities across the application.
+ * Delegates actual storage operations to an underlying IShopStorageAdapter (default: LocalStorageAdapter).
+ * 
+ * Future-Ready Architecture:
+ * To switch to Firebase, Firestore, or REST API storage in the future, pass or set a different
+ * storage adapter implementation via `DataService.setStorageAdapter(...)`.
+ */
 export class DataService {
+  private static storageAdapter: IShopStorageAdapter = new LocalStorageAdapter();
+
+  /**
+   * Configures a custom storage adapter (e.g. LocalStorageAdapter, or future FirebaseStorageAdapter).
+   */
+  public static setStorageAdapter(adapter: IShopStorageAdapter): void {
+    this.storageAdapter = adapter;
+  }
+
+  /**
+   * Retrieves current active storage adapter instance.
+   */
+  public static getStorageAdapter(): IShopStorageAdapter {
+    return this.storageAdapter;
+  }
+
   public static getProducts(): Product[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-      if (stored) {
-        const raw: Product[] = JSON.parse(stored);
-        return raw.map(updateProductStockStatus);
-      }
-    } catch (e) {
-      console.warn('Failed to load products from localStorage, returning initial dataset', e);
-    }
-    this.saveProducts(INITIAL_PRODUCTS);
-    return INITIAL_PRODUCTS;
+    return this.storageAdapter.getProducts();
   }
 
   public static saveProducts(products: Product[]): void {
-    try {
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
-    } catch (e) {
-      console.error('Failed to save products to localStorage', e);
-    }
+    this.storageAdapter.saveProducts(products);
   }
 
   public static getSales(): Sale[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.SALES);
-      if (stored) return JSON.parse(stored);
-    } catch (e) {
-      console.warn('Failed to load sales from localStorage', e);
-    }
-    this.saveSales(INITIAL_SALES);
-    return INITIAL_SALES;
+    return this.storageAdapter.getSales();
   }
 
   public static saveSales(sales: Sale[]): void {
-    try {
-      localStorage.setItem(STORAGE_KEYS.SALES, JSON.stringify(sales));
-    } catch (e) {
-      console.error('Failed to save sales to localStorage', e);
-    }
+    this.storageAdapter.saveSales(sales);
   }
 
   public static getPurchases(): Purchase[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.PURCHASES);
-      if (stored) return JSON.parse(stored);
-    } catch (e) {
-      console.warn('Failed to load purchases from localStorage', e);
-    }
-    this.savePurchases(INITIAL_PURCHASES);
-    return INITIAL_PURCHASES;
+    return this.storageAdapter.getPurchases();
   }
 
   public static savePurchases(purchases: Purchase[]): void {
-    try {
-      localStorage.setItem(STORAGE_KEYS.PURCHASES, JSON.stringify(purchases));
-    } catch (e) {
-      console.error('Failed to save purchases to localStorage', e);
-    }
+    this.storageAdapter.savePurchases(purchases);
   }
 
   public static getSuppliers(): Supplier[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.SUPPLIERS);
-      if (stored) return JSON.parse(stored);
-    } catch (e) {
-      console.warn('Failed to load suppliers from localStorage', e);
-    }
-    this.saveSuppliers(INITIAL_SUPPLIERS);
-    return INITIAL_SUPPLIERS;
+    return this.storageAdapter.getSuppliers();
   }
 
   public static saveSuppliers(suppliers: Supplier[]): void {
-    try {
-      localStorage.setItem(STORAGE_KEYS.SUPPLIERS, JSON.stringify(suppliers));
-    } catch (e) {
-      console.error('Failed to save suppliers to localStorage', e);
-    }
+    this.storageAdapter.saveSuppliers(suppliers);
   }
 
   public static getNotifications(): NotificationItem[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
-      if (stored) return JSON.parse(stored);
-    } catch (e) {
-      console.warn('Failed to load notifications from localStorage', e);
-    }
-    this.saveNotifications(INITIAL_NOTIFICATIONS);
-    return INITIAL_NOTIFICATIONS;
+    return this.storageAdapter.getNotifications();
   }
 
   public static saveNotifications(notifs: NotificationItem[]): void {
-    try {
-      localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifs));
-    } catch (e) {
-      console.error('Failed to save notifications to localStorage', e);
-    }
+    this.storageAdapter.saveNotifications(notifs);
   }
 
   public static getUserProfile(): UserProfile {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-      if (stored) return JSON.parse(stored);
-    } catch (e) {
-      console.warn('Failed to load user profile from localStorage', e);
-    }
-    this.saveUserProfile(DEFAULT_USER_PROFILE);
-    return DEFAULT_USER_PROFILE;
+    return this.storageAdapter.getUserProfile();
   }
 
   public static saveUserProfile(profile: UserProfile): void {
-    try {
-      localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(profile));
-    } catch (e) {
-      console.error('Failed to save profile to localStorage', e);
-    }
+    this.storageAdapter.saveUserProfile(profile);
   }
 
   public static resetToSampleData(): void {
-    localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
-    localStorage.removeItem(STORAGE_KEYS.SALES);
-    localStorage.removeItem(STORAGE_KEYS.PURCHASES);
-    localStorage.removeItem(STORAGE_KEYS.SUPPLIERS);
-    localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
-    localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
+    this.storageAdapter.resetToSampleData();
   }
 }

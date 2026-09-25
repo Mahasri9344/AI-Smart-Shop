@@ -231,9 +231,9 @@ Represents shopkeeper profile and shop branding metadata (`id`, `name`, `email`,
 ## 💾 Current Data Storage Architecture
 
 > [!NOTE]
-> **Frontend / LocalStorage Implementation**: The current version of AI SMART SHOP is a client-side frontend web prototype. All application state is stored locally using browser `LocalStorage` and managed in memory by `DataService` ([`src/services/dataService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/dataService.ts)) and React `ShopContext` ([`src/context/ShopContext.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/context/ShopContext.tsx)). Persistent backend cloud server & database integration is planned as future production work.
+> **Decoupled Repository Architecture**: The current version of AI SMART SHOP is a client-side web application. All data operations pass through a decoupled repository facade ([`DataService`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/dataService.ts)) which delegates to a storage adapter implementing the [`IShopStorageAdapter`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/storageAdapter.ts) interface. The active adapter is [`LocalStorageAdapter`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/localStorageAdapter.ts). This architecture ensures that when Firebase / Firestore backend integration is added in the future, it can replace `LocalStorageAdapter` with zero changes to UI components or business logic handlers.
 
-### Storage Keys Used
+### Storage Keys Used (in LocalStorageAdapter)
 - `ai_smart_shop_products_v1`: Product catalog array with auto-seeding.
 - `ai_smart_shop_sales_v1`: Customer sales transaction logs.
 - `ai_smart_shop_purchases_v1`: Wholesale purchase orders.
@@ -267,9 +267,15 @@ Represents shopkeeper profile and shop branding metadata (`id`, `name`, `email`,
                │
                ▼
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                     DataService Persistence Adapter                             │
-│     - Synchronizes state mutations to Browser LocalStorage                      │
-│     - Fallback initialization with pre-seeded sample retail dataset             │
+│                     DataService Façade & Access Layer                           │
+│        (Unified static entry point for all data entity operations)              │
+└────────────────────────────────────────┬────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                     IShopStorageAdapter Repository Interface                    │
+│     - Current Active Implementation: LocalStorageAdapter                        │
+│     - Future Production Option: FirebaseStorageAdapter / RESTApiAdapter        │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -278,15 +284,18 @@ Represents shopkeeper profile and shop branding metadata (`id`, `name`, `email`,
 ## ⚙️ Current Service Layer Responsibilities
 
 1. **`DataService` ([`src/services/dataService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/dataService.ts))**:
-   Client-side data persistence adapter. Loads, saves, and resets catalog items, sales, purchases, suppliers, and notifications from `LocalStorage` with safe `try...catch` fallback defaults.
+   Unified static entry point and façade for data access. Delegates persistence calls to an underlying `IShopStorageAdapter`. Supports runtime adapter injection (`setStorageAdapter`).
 
-2. **`stockIntelligence` ([`src/services/stockIntelligence.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/stockIntelligence.ts))**:
+2. **`LocalStorageAdapter` ([`src/services/localStorageAdapter.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/localStorageAdapter.ts))**:
+   Concrete implementation of `IShopStorageAdapter`. Encapsulates browser `LocalStorage` read, write, error fallback logging, and seed dataset initialization.
+
+3. **`stockIntelligence` ([`src/services/stockIntelligence.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/stockIntelligence.ts))**:
    Core mathematical stock evaluation engine. Calculates status boundaries (`CRITICAL`, `LOW`, `NORMAL`), updates product status timestamps, and computes financial summary metrics.
 
-3. **`AIService` ([`src/services/aiService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/aiService.ts))**:
+4. **`AIService` ([`src/services/aiService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/aiService.ts))**:
    Rule-based natural language intent parser. Processes user text queries and generates intelligent responses for critical stock warnings, restock recommendations, daily sales totals, and product quantity lookups.
 
-4. **`voiceService` ([`src/services/voiceService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/voiceService.ts))**:
+5. **`voiceService` ([`src/services/voiceService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/voiceService.ts))**:
    Web Speech API adapter. Handles microphone speech-to-text recognition (`SpeechRecognition`) and audio speech synthesis (`SpeechSynthesis`) for hands-free assistant interaction.
 
 ---
