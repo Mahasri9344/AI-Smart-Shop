@@ -112,7 +112,10 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return notifications.filter(n => !n.read).length;
   }, [notifications]);
 
-  // Helper to trigger proactive notification when stock drops
+  // Proactive Alert Generator:
+  // Automatically creates a notification item when product status drops into CRITICAL or LOW levels.
+  // Employs a deduplication check (!existingNotif) so shopkeepers are not spammed with duplicate unread alerts
+  // for the same item while stock remains depleted.
   const checkAndCreateStockAlert = (updatedProd: Product) => {
     if (updatedProd.status === 'CRITICAL') {
       const existingCriticalNotif = notifications.find(
@@ -184,9 +187,15 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }));
   };
 
+  // Sales Business Transaction Guard & Execution:
+  // 1. Validates product existence and stock availability BEFORE mutating state to enforce oversell protection.
+  // 2. Records total sales revenue (quantity * sellingPrice) for financial reporting.
+  // 3. Atomically deducts inventory stock and re-evaluates status thresholds.
   const recordSale = (productId: string, quantity: number): { success: boolean; message: string } => {
     const targetProd = products.find(p => p.id === productId);
     if (!targetProd) return { success: false, message: 'Product not found' };
+    
+    // Oversell Validation Guard: Reject billing attempt if requested quantity exceeds available physical stock
     if (targetProd.quantity < quantity) {
       return { success: false, message: `Insufficient stock. Current: ${targetProd.quantity} ${targetProd.unit}` };
     }
@@ -204,10 +213,15 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     setSales(prev => [newSale, ...prev]);
+    
+    // Deduct stock quantity and evaluate if new status triggers stock warnings
     adjustStock(productId, -quantity);
     return { success: true, message: `Recorded sale of ${quantity} ${targetProd.unit} of ${targetProd.name}` };
   };
 
+  // Wholesale Purchase Replenishment:
+  // 1. Records vendor replenishment order with supplier mapping and purchase cost calculations.
+  // 2. Automatically increments physical stock quantity to reflect incoming inventory shipments in real time.
   const recordPurchase = (productId: string, quantity: number, purchasePrice: number, supplierId: string) => {
     const targetProd = products.find(p => p.id === productId);
     if (!targetProd) return;
@@ -231,7 +245,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     setPurchases(prev => [newPurchase, ...prev]);
     
-    // Automatically increment stock on purchase
+    // Automatically increment stock on purchase order replenishment
     adjustStock(productId, quantity);
   };
 

@@ -14,6 +14,13 @@ interface State {
   errorInfo: ErrorInfo | null;
 }
 
+/**
+ * Reusable React Class-Based Error Boundary Component.
+ * 
+ * Architecture & Purpose:
+ * Catches unhandled JavaScript rendering errors thrown anywhere in child component trees.
+ * Suppresses white-screen crashes by rendering a fallback UI and capturing error diagnostics.
+ */
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
@@ -21,15 +28,25 @@ export class ErrorBoundary extends Component<Props, State> {
     errorInfo: null,
   };
 
+  /**
+   * Static Lifecycle Hook: Invoked when a descendant component throws an unhandled error during rendering.
+   * Updates state to trigger fallback UI rendering synchronously.
+   */
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error, errorInfo: null };
   }
 
+  /**
+   * Lifecycle Hook: Logs uncaught error trace details for developer diagnostics.
+   */
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error in React Component Tree:', error, errorInfo);
     this.setState({ errorInfo });
   }
 
+  /**
+   * Resets the Error Boundary state to attempt component recovery without full page reload.
+   */
   public resetErrorBoundary = () => {
     if (this.props.onReset) {
       this.props.onReset();

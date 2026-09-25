@@ -7,6 +7,17 @@ export interface AIResponse {
 }
 
 export class AIService {
+  /**
+   * Processes natural language retail queries and maps them to dynamic inventory intents.
+   * 
+   * Intent Resolution Priority Hierarchy:
+   * 1. CRITICAL STOCK: Matches urgent critical stock inquiries first so depleted inventory is surfaced immediately.
+   * 2. RESTOCK / LOW STOCK: Identifies items requiring replenishment (LOW + CRITICAL).
+   * 3. TODAY'S SALES: Calculates daily sales revenue aggregate dynamically.
+   * 4. TODAY'S PURCHASES: Calculates daily wholesale expense aggregate dynamically.
+   * 5. SPECIFIC PRODUCT: Fuzzy string match against catalog product names or categories.
+   * 6. GENERAL SUMMARY: Default fallback inventory health summary across all products.
+   */
   public static processQuery(
     rawQuery: string,
     products: Product[],
@@ -15,7 +26,7 @@ export class AIService {
   ): AIResponse {
     const query = rawQuery.toLowerCase().trim();
 
-    // 1. Critical Stock Intent
+    // 1. Critical Stock Intent: High-priority check for items at or below critical safety threshold
     if (query.includes('critical') || query.includes('urgent')) {
       const criticalProducts = products.filter(p => p.status === 'CRITICAL');
       if (criticalProducts.length === 0) {
@@ -33,7 +44,7 @@ export class AIService {
       };
     }
 
-    // 2. Low Stock / Restock Intent
+    // 2. Low Stock / Restock Intent: Aggregates both LOW and CRITICAL items needing vendor order
     if (query.includes('low') || query.includes('restock') || query.includes('reorder')) {
       const lowProducts = products.filter(p => p.status === 'LOW');
       const criticalProducts = products.filter(p => p.status === 'CRITICAL');
@@ -55,7 +66,7 @@ export class AIService {
       };
     }
 
-    // 3. Sales & Revenue Intent
+    // 3. Sales & Revenue Intent: Filters today's transactions and computes sum of totalAmount
     if (query.includes('sale') || query.includes('revenue') || query.includes('sold')) {
       const today = new Date().toDateString();
       const todaySales = sales.filter(s => new Date(s.timestamp).toDateString() === today);
@@ -68,7 +79,7 @@ export class AIService {
       };
     }
 
-    // 4. Purchases Intent
+    // 4. Purchases Intent: Filters today's wholesale replenishment orders
     if (query.includes('purchase') || query.includes('bought') || query.includes('stock in')) {
       const today = new Date().toDateString();
       const todayPurchases = purchases.filter(p => new Date(p.timestamp).toDateString() === today);
@@ -81,7 +92,7 @@ export class AIService {
       };
     }
 
-    // 5. Specific Product Query Intent (e.g. "How many almonds", "search cashews", "dates quantity")
+    // 5. Specific Product Query Intent: Matches keywords against product names and categories (length > 2)
     const matchedProduct = products.find(p => {
       const pName = p.name.toLowerCase();
       const pCat = p.category.toLowerCase();
@@ -96,7 +107,7 @@ export class AIService {
       };
     }
 
-    // 6. General Stock Check / Default Summary
+    // 6. General Stock Check: Fallback response providing high-level inventory totals
     const totalUnits = products.reduce((acc, p) => acc + p.quantity, 0);
     const criticalCount = products.filter(p => p.status === 'CRITICAL').length;
     const lowCount = products.filter(p => p.status === 'LOW').length;
