@@ -156,6 +156,249 @@ $$\text{Status} = \begin{cases} \text{CRITICAL} & \text{if } \text{quantity} \le
 
 ---
 
+## 🗄️ Current Data Model & Type System
+
+The current frontend application models retail shop operations using strict TypeScript interfaces ([`src/types/index.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/types/index.ts)):
+
+### 1. `Product` Interface
+Represents store inventory items with dynamic status calculation boundaries and supplier linkage:
+- `id` (`string`): Unique product identifier (e.g. `'prod-1'`).
+- `name` (`string`): Display product name (e.g. `'California Almonds'`).
+- `category` (`ProductCategory`): Enum value (`'Dry Fruits'`, `'Spices'`, `'Groceries'`, `'Natural Sugars'`, `'Beverages'`, `'Other'`).
+- `description` (`string`): Detailed description of the store item.
+- `quantity` (`number`): Current available physical stock count.
+- `unit` (`UnitType`): Measurement unit (`'kg'`, `'g'`, `'L'`, `'ml'`, `'units'`, `'packets'`, `'boxes'`).
+- `purchasePrice` (`number`): Wholesale unit cost paid to supplier (₹).
+- `sellingPrice` (`number`): Retail unit price charged to customers (₹).
+- `lowStockThreshold` (`number`): Quantity threshold triggering `'LOW'` status.
+- `criticalStockThreshold` (`number`): Quantity threshold triggering `'CRITICAL'` status.
+- `supplierId` (`string`): Foreign key mapping to assigned `Supplier`.
+- `supplierName` (`string`): Denormalized display name of supplier.
+- `status` (`StockStatus`): Dynamic status (`'NORMAL'`, `'LOW'`, `'CRITICAL'`).
+- `createdAt` / `updatedAt` (`string`): ISO 8601 timestamps.
+
+### 2. `Sale` Interface
+Represents customer sales billing transactions:
+- `id` (`string`): Unique transaction ID (`'sale-...'`).
+- `productId` (`string`): Mapped `Product` ID.
+- `productName` (`string`): Product display name at time of sale.
+- `quantity` (`number`): Quantity sold to customer.
+- `unit` (`UnitType`): Unit of measurement.
+- `unitPrice` (`number`): Selling price per unit (₹).
+- `totalAmount` (`number`): Total billing amount (`quantity * unitPrice`).
+- `timestamp` (`string`): ISO 8601 transaction date and time.
+
+### 3. `Purchase` Interface
+Represents wholesale stock replenishment orders:
+- `id` (`string`): Unique purchase order ID (`'purch-...'`).
+- `productId` (`string`): Mapped `Product` ID.
+- `productName` (`string`): Product display name.
+- `supplierId` (`string`): Supplier ID.
+- `supplierName` (`string`): Vendor display name.
+- `quantity` (`number`): Restocked quantity.
+- `unit` (`UnitType`): Unit of measurement.
+- `purchasePrice` (`number`): Wholesale unit cost (₹).
+- `totalAmount` (`number`): Total replenishment expense (`quantity * purchasePrice`).
+- `timestamp` (`string`): ISO 8601 purchase order timestamp.
+
+### 4. `Supplier` Interface
+Represents wholesale vendor directory details:
+- `id` (`string`): Unique supplier ID (`'sup-...'`).
+- `name` (`string`): Vendor or agency name.
+- `contactNumber` (`string`): Primary phone contact.
+- `email` (`string`): Vendor email address.
+- `address` (`string`): Physical office or warehouse location.
+- `productsSupplied` (`string[]`): Array of product category/item names supplied.
+- `totalPurchases` (`number`): Aggregate purchase volume.
+- `lastPurchaseDate` (`string`): Date of most recent purchase order.
+- `status` (`'ACTIVE' | 'INACTIVE'`): Operational status.
+
+### 5. `NotificationItem` Interface
+Represents proactive system alerts:
+- `id` (`string`): Unique alert ID (`'notif-...'`).
+- `type`: Enum (`'CRITICAL_STOCK'`, `'LOW_STOCK'`, `'STOCK_UPDATED'`, `'SALE_RECORDED'`, `'PURCHASE_RECORDED'`, `'AI_RECOMMENDATION'`).
+- `title` (`string`): Short warning header.
+- `message` (`string`): Detailed notification text with current stock metrics.
+- `timestamp` (`string`): Alert creation time.
+- `read` (`boolean`): Read/unread flag.
+- `productId` (`string?`): Optional associated product ID for quick action triggering.
+
+### 6. `UserProfile` Interface
+Represents shopkeeper profile and shop branding metadata (`id`, `name`, `email`, `shopName`, `phone`, `address`, `role`).
+
+---
+
+## 💾 Current Data Storage Architecture
+
+> [!NOTE]
+> **Frontend / LocalStorage Implementation**: The current version of AI SMART SHOP is a client-side frontend web prototype. All application state is stored locally using browser `LocalStorage` and managed in memory by `DataService` ([`src/services/dataService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/dataService.ts)) and React `ShopContext` ([`src/context/ShopContext.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/context/ShopContext.tsx)). Persistent backend cloud server & database integration is planned as future production work.
+
+### Storage Keys Used
+- `ai_smart_shop_products_v1`: Product catalog array with auto-seeding.
+- `ai_smart_shop_sales_v1`: Customer sales transaction logs.
+- `ai_smart_shop_purchases_v1`: Wholesale purchase orders.
+- `ai_smart_shop_suppliers_v1`: Supplier directory records.
+- `ai_smart_shop_notifications_v1`: System alert logs.
+- `ai_smart_shop_profile_v1`: User profile & shop branding metadata.
+
+---
+
+## 🔄 Current Application Data Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              User Interface (UI Layer)                          │
+│     (Pages: Dashboard, Inventory, Sales, Purchases, Alerts, AIAssistant)        │
+└────────────────────────────────────────┬────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            React ShopContext State                              │
+│       - Reactive state (`products`, `sales`, `purchases`, `notifications`)      │
+│       - Transaction Handlers (`recordSale`, `recordPurchase`, `adjustStock`)    │
+└──────────────┬─────────────────────────┬──────────────────────────┬─────────────┘
+               │                         │                          │
+               ▼                         ▼                          ▼
+┌─────────────────────────────┐ ┌──────────────────┐ ┌─────────────────────────────┐
+│ stockIntelligence Service   │ │   AIService      │ │    voiceService             │
+│ - Threshold evaluation      │ │ - Intent Parsing │ │ - Web Speech Recognition    │
+│ - Alert Deduplication       │ │ - NLP Answers    │ │ - Text-to-Speech (TTS)      │
+└──────────────┬──────────────┘ └──────────────────┘ └─────────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                     DataService Persistence Adapter                             │
+│     - Synchronizes state mutations to Browser LocalStorage                      │
+│     - Fallback initialization with pre-seeded sample retail dataset             │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## ⚙️ Current Service Layer Responsibilities
+
+1. **`DataService` ([`src/services/dataService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/dataService.ts))**:
+   Client-side data persistence adapter. Loads, saves, and resets catalog items, sales, purchases, suppliers, and notifications from `LocalStorage` with safe `try...catch` fallback defaults.
+
+2. **`stockIntelligence` ([`src/services/stockIntelligence.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/stockIntelligence.ts))**:
+   Core mathematical stock evaluation engine. Calculates status boundaries (`CRITICAL`, `LOW`, `NORMAL`), updates product status timestamps, and computes financial summary metrics.
+
+3. **`AIService` ([`src/services/aiService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/aiService.ts))**:
+   Rule-based natural language intent parser. Processes user text queries and generates intelligent responses for critical stock warnings, restock recommendations, daily sales totals, and product quantity lookups.
+
+4. **`voiceService` ([`src/services/voiceService.ts`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/services/voiceService.ts))**:
+   Web Speech API adapter. Handles microphone speech-to-text recognition (`SpeechRecognition`) and audio speech synthesis (`SpeechSynthesis`) for hands-free assistant interaction.
+
+---
+
+## 🌐 Planned Future REST API Design
+
+> [!IMPORTANT]
+> **Planned / Future Backend Specification**: The following REST API endpoint specification is a proposed architectural design for future cloud backend implementation (Node.js/Express or Python/FastAPI backend with database persistence). These endpoints are **NOT** currently implemented in the frontend prototype.
+
+| HTTP Method | Endpoint Path | Description | Planned Payload / Query |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/products` | Fetch all products with filter options | `?category=Dry+Fruits&status=CRITICAL` |
+| `POST` | `/api/products` | Create a new inventory product | `Product` object body |
+| `PUT` | `/api/products/:id` | Update product details or stock thresholds | Partial `Product` body |
+| `DELETE` | `/api/products/:id` | Delete product from catalog | N/A |
+| `PATCH` | `/api/products/:id/stock` | Adjust stock quantity directly | `{ deltaQuantity: number }` |
+| `GET` | `/api/sales` | Fetch sales transaction history | `?startDate=2026-09-01&endDate=...` |
+| `POST` | `/api/sales` | Record new customer sale (deducts stock) | `{ productId, quantity, unitPrice }` |
+| `GET` | `/api/purchases` | Fetch wholesale purchase order history | `?supplierId=sup-1` |
+| `POST` | `/api/purchases` | Record purchase replenishment (increments stock) | `{ productId, supplierId, quantity, purchasePrice }` |
+| `GET` | `/api/suppliers` | List all wholesale suppliers | `?status=ACTIVE` |
+| `POST` | `/api/suppliers` | Add new vendor contact | `Supplier` object body |
+| `PUT` | `/api/suppliers/:id` | Update supplier details | Partial `Supplier` body |
+| `GET` | `/api/alerts` | Fetch active notifications & stock alerts | `?unreadOnly=true` |
+| `PUT` | `/api/alerts/:id/read` | Mark alert notification as read | N/A |
+| `POST` | `/api/ai/query` | Process AI assistant natural language query | `{ query: string }` |
+
+---
+
+## 🗄️ Planned Future Database Schema
+
+> [!IMPORTANT]
+> **Planned / Future Database Specification**: The schema below represents the planned relational database design (PostgreSQL/MySQL or Cloud Firestore) for post-prototype cloud integration. It is **NOT** currently active.
+
+```mermaid
+erDiagram
+    SUPPLIERS ||--o{ PRODUCTS : "supplies"
+    PRODUCTS ||--o{ SALES : "sold_in"
+    PRODUCTS ||--o{ PURCHASES : "replenished_in"
+    SUPPLIERS ||--o{ PURCHASES : "fulfills"
+    PRODUCTS ||--o{ ALERTS : "triggers"
+
+    SUPPLIERS {
+        string id PK
+        string name
+        string contact_number
+        string email
+        string address
+        string status
+    }
+
+    PRODUCTS {
+        string id PK
+        string name
+        string category
+        string description
+        decimal quantity
+        string unit
+        decimal purchase_price
+        decimal selling_price
+        decimal low_stock_threshold
+        decimal critical_stock_threshold
+        string supplier_id FK
+        string status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SALES {
+        string id PK
+        string product_id FK
+        string product_name
+        decimal quantity
+        string unit
+        decimal unit_price
+        decimal total_amount
+        timestamp timestamp
+    }
+
+    PURCHASES {
+        string id PK
+        string product_id FK
+        string supplier_id FK
+        string product_name
+        string supplier_name
+        decimal quantity
+        string unit
+        decimal purchase_price
+        decimal total_amount
+        timestamp timestamp
+    }
+
+    ALERTS {
+        string id PK
+        string product_id FK
+        string type
+        string title
+        string message
+        boolean read
+        timestamp timestamp
+    }
+```
+
+### High-Level Relational Model
+- **`suppliers` ──< `products`**: One supplier can supply multiple catalog products (`products.supplier_id` → `suppliers.id`).
+- **`products` ──< `sales`**: One product can have many customer sales records (`sales.product_id` → `products.id`).
+- **`products` ──< `purchases`**: One product can have multiple wholesale replenishment purchase orders (`purchases.product_id` → `products.id`).
+- **`suppliers` ──< `purchases`**: Each purchase order maps to the fulfilling vendor (`purchases.supplier_id` → `suppliers.id`).
+- **`products` ──< `alerts`**: Stock depletion events generate linked notification records (`alerts.product_id` → `products.id`).
+
+---
+
 ## 📂 Project Structure & 16 Major Modules Map
 
 The codebase is organized into 16 clearly identifiable, modular components for seamless developer inspection:
