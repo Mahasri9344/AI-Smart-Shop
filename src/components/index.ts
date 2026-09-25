@@ -4,6 +4,7 @@ export { Sidebar } from './common/Sidebar';
 export { StatCard } from './common/StatCard';
 export { StatusBadge } from './common/StatusBadge';
 export { Modal } from './common/Modal';
+export { ErrorBoundary } from './common/ErrorBoundary';
 
 // Inventory Components
 export { ProductModal } from './inventory/ProductModal';

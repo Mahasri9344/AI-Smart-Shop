@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Header } from '../components/common/Header';
 import { Sidebar } from '../components/common/Sidebar';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { Outlet } from 'react-router-dom';
 
 export const MainLayout: React.FC = () => {
@@ -30,7 +31,9 @@ export const MainLayout: React.FC = () => {
         <Header onToggleSidebar={toggleMobileOpen} />
 
         <main className="main-content">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

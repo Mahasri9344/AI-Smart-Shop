@@ -266,6 +266,21 @@ npm test
 
 ---
 
+## 🛡️ Error Handling
+
+The application implements a robust **React Error Boundary** pattern ([`ErrorBoundary.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/components/common/ErrorBoundary.tsx)) to ensure application resilience and prevent full web page crashes during unexpected runtime rendering errors:
+
+### Architecture & Placement
+- **Top-Level Application Guard ([`App.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/App.tsx))**: Wraps the entire application (`ShopProvider` & `BrowserRouter`) to catch unhandled errors anywhere in the root context or routing tree.
+- **Layout Content Guard ([`MainLayout.tsx`](file:///c:/Users/user/Documents/AI-Smart-Shop/src/layouts/MainLayout.tsx))**: Wraps the main nested content area (`<Outlet />`). If an error occurs in an individual page component (e.g. Dashboard, Inventory, Sales), the top header bar and sidebar navigation remain functional while the error boundary renders a fallback UI inside the main content viewport.
+
+### Fallback Behavior
+- **Professional Fallback UI**: When an unhandled React error is caught, the Error Boundary suppresses white screen crashes and renders a clean, themed error card.
+- **User Actions**: Provides **"Try Again"** (resets error state to attempt re-rendering) and **"Go to Home"** (redirects to home dashboard).
+- **Console Diagnostics**: Automatically captures and logs error details and component stack traces (`componentDidCatch`) for developer diagnostics.
+
+---
+
 ## 📊 Verification & Build Status
 
 The application has undergone thorough compilation and verification testing:
