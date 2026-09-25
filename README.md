@@ -238,6 +238,34 @@ AI-Smart-Shop/
 
 ---
 
+## 🧪 Testing
+
+The project includes automated unit testing for core retail business logic built with **Vitest**:
+
+### Framework Used
+- **Testing Framework**: [Vitest](https://vitest.dev/) (Lightweight, fast test runner natively integrated with Vite & TypeScript)
+
+### How to Run Tests
+```bash
+npm test
+```
+
+### Important Business Logic Covered
+- **Stock Intelligence (`stockIntelligence.test.ts`)**:
+  - `calculateStockStatus`: Tests zero stock, critical threshold boundaries, low stock threshold boundaries, and normal stock.
+  - `updateProductStockStatus`: Validates dynamic recalculation of product stock status and timestamp updates.
+- **Inventory & Transaction Rules (`ShopContext.test.ts`)**:
+  - **Oversell Guard**: Verifies that sales exceeding available inventory stock are rejected with an insufficient stock error message.
+  - **Valid Sales Execution**: Verifies correct inventory stock deduction and revenue calculations (`quantity * sellingPrice`).
+  - **Purchase Replenishment**: Verifies stock increments upon wholesale order recording and purchase cost calculations (`quantity * purchasePrice`).
+  - **Alert Detection**: Verifies automatic alert notification generation when stock drops below thresholds.
+- **AI Assistant Intent Engine (`aiService.test.ts`)**:
+  - Tests natural-language intent recognition for critical stock warnings, restock recommendations, revenue inquiries, and product quantity lookups.
+- **Data Persistence Adapter (`dataService.test.ts`)**:
+  - Tests LocalStorage fallback behavior and sample data dataset resets.
+
+---
+
 ## 📊 Verification & Build Status
 
 The application has undergone thorough compilation and verification testing:
