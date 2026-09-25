@@ -12,13 +12,13 @@ interface ChatMessage {
 }
 
 export const AIAssistant: React.FC = () => {
-  const { products, sales, purchases } = useShop();
+  const { products, sales, purchases, suppliers } = useShop();
   
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'init-1',
       sender: 'ai',
-      text: '🤖 Hello! I am your AI Smart Shop Assistant. Ask me about stock status, low stock items, or today\'s sales.',
+      text: '🤖 Hello! I am your AI Smart Shop Assistant. Ask me about stock status, low stock, critical items, reordering, sales, profit, inventory value, or suppliers.',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -29,12 +29,16 @@ export const AIAssistant: React.FC = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const suggestedCommands = [
-    'Check Stock',
+    'Give me a summary of my shop',
+    'Which products are low in stock?',
     'Which products are critical?',
-    'Show low stock',
-    'What should I restock?',
-    'How many almonds are available?',
-    'Show today\'s sales'
+    'What should I reorder?',
+    'What are today\'s sales?',
+    'Which products are top selling?',
+    'How much inventory value do I have?',
+    'How much profit have I made?',
+    'Show my recent purchases',
+    'Show my suppliers'
   ];
 
   // Stop speech synthesis if component unmounts
@@ -78,7 +82,6 @@ export const AIAssistant: React.FC = () => {
         setVoiceState(state);
       },
       onResult: (recognizedSpeech) => {
-        // Requirement 7 & 8: Put ONLY recognized real speech into input box. Do NOT auto-submit.
         if (recognizedSpeech && recognizedSpeech.trim().length > 0) {
           setInputQuery(recognizedSpeech.trim());
         }
@@ -102,8 +105,8 @@ export const AIAssistant: React.FC = () => {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    // 2. Process query via AIService
-    const aiResult = AIService.processQuery(queryToProcess, products, sales, purchases);
+    // 2. Process query via AIService with products, sales, purchases, and suppliers
+    const aiResult = AIService.processQuery(queryToProcess, products, sales, purchases, suppliers);
 
     const aiMsg: ChatMessage = {
       id: `ai-${Date.now()}`,
@@ -115,7 +118,7 @@ export const AIAssistant: React.FC = () => {
     setMessages(prev => [...prev, userMsg, aiMsg]);
     setInputQuery('');
 
-    // Automatically speak AI short response for accessibility
+    // Automatically speak AI response for accessibility
     handleSpeakText(aiResult.text);
   };
 

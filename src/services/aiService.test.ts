@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { AIService } from './aiService';
-import type { Product, Sale, Purchase } from '../types';
+import type { Product, Sale, Purchase, Supplier } from '../types';
 
 describe('AI Assistant Intent Processor (aiService.ts)', () => {
   const sampleProducts: Product[] = [
@@ -87,33 +87,103 @@ describe('AI Assistant Intent Processor (aiService.ts)', () => {
     }
   ];
 
-  it('should identify CHECK_CRITICAL_STOCK intent when query contains "critical"', () => {
-    const res = AIService.processQuery('Which products are critical?', sampleProducts, sampleSales, samplePurchases);
+  const sampleSuppliers: Supplier[] = [
+    {
+      id: 'sup-1',
+      name: 'Royal Spices',
+      contactNumber: '+91 98765 43210',
+      email: 'contact@royalspices.com',
+      address: 'Spice Market, Delhi',
+      productsSupplied: ['Almonds', 'Cashews'],
+      totalPurchases: 15000,
+      lastPurchaseDate: '2026-09-20',
+      status: 'ACTIVE'
+    },
+    {
+      id: 'sup-2',
+      name: 'Green Harvest',
+      contactNumber: '+91 98765 43211',
+      email: 'info@greenharvest.com',
+      address: 'Organic Plaza, Bangalore',
+      productsSupplied: ['Turmeric'],
+      totalPurchases: 8000,
+      lastPurchaseDate: '2026-09-22',
+      status: 'ACTIVE'
+    }
+  ];
+
+  it('1. should identify CHECK_LOW_STOCK intent when asking for low stock items', () => {
+    const res = AIService.processQuery('Which products are low in stock?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+    expect(res.intent).toBe('CHECK_LOW_STOCK');
+    expect(res.text).toContain('Whole Cashews');
+  });
+
+  it('2. should identify CHECK_CRITICAL_STOCK intent when query contains "critical"', () => {
+    const res = AIService.processQuery('Which products are critical?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
     expect(res.intent).toBe('CHECK_CRITICAL_STOCK');
     expect(res.text).toContain('California Almonds');
   });
 
-  it('should identify RESTOCK_REQUIRED intent when query contains "restock" or "low"', () => {
-    const res = AIService.processQuery('What should I restock?', sampleProducts, sampleSales, samplePurchases);
+  it('3. should identify RESTOCK_REQUIRED intent when query contains "reorder"', () => {
+    const res = AIService.processQuery('What should I reorder?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
     expect(res.intent).toBe('RESTOCK_REQUIRED');
     expect(res.text).toContain('CRITICAL');
   });
 
-  it('should calculate today\'s revenue correctly for sales intent', () => {
-    const res = AIService.processQuery('Show today sales revenue', sampleProducts, sampleSales, samplePurchases);
+  it('4. should calculate today\'s revenue correctly for sales intent', () => {
+    const res = AIService.processQuery('What are today\'s sales?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
     expect(res.intent).toBe('CHECK_TODAY_SALES');
     expect(res.text).toContain('₹1,900');
   });
 
-  it('should calculate today\'s purchase costs correctly for purchase intent', () => {
-    const res = AIService.processQuery('Show today purchases', sampleProducts, sampleSales, samplePurchases);
-    expect(res.intent).toBe('CHECK_TODAY_PURCHASES');
-    expect(res.text).toContain('₹2,800');
+  it('5. should identify CHECK_TOP_SELLING intent and rank products', () => {
+    const res = AIService.processQuery('Which products are top selling?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+    expect(res.intent).toBe('CHECK_TOP_SELLING');
+    expect(res.text).toContain('Whole Cashews');
   });
 
-  it('should return specific product quantity when product name is mentioned', () => {
-    const res = AIService.processQuery('How many almonds are available?', sampleProducts, sampleSales, samplePurchases);
+  it('6. should calculate inventory retail and cost valuation correctly', () => {
+    const res = AIService.processQuery('How much inventory value do I have?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+    expect(res.intent).toBe('CHECK_INVENTORY_VALUE');
+    // 2*900 + 8*950 + 30*220 = 1800 + 7600 + 6600 = 16000
+    expect(res.text).toContain('₹16,000');
+  });
+
+  it('7. should calculate profit and gross margin percentage', () => {
+    const res = AIService.processQuery('How much profit have I made?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+    expect(res.intent).toBe('CHECK_PROFIT');
+    expect(res.text).toContain('Total sales revenue');
+  });
+
+  it('8. should return recent purchase orders', () => {
+    const res = AIService.processQuery('Show my recent purchases.', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+    expect(res.intent).toBe('CHECK_PURCHASES');
+    expect(res.text).toContain('Organic Turmeric');
+  });
+
+  it('9. should return active suppliers from directory', () => {
+    const res = AIService.processQuery('Show my suppliers.', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+    expect(res.intent).toBe('CHECK_SUPPLIERS');
+    expect(res.text).toContain('Royal Spices');
+    expect(res.text).toContain('Green Harvest');
+  });
+
+  it('10. should generate holistic executive summary of shop', () => {
+    const res = AIService.processQuery('Give me a summary of my shop.', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+    expect(res.intent).toBe('CHECK_SHOP_SUMMARY');
+    expect(res.text).toContain('Shop Summary');
+    expect(res.text).toContain('3 products');
+  });
+
+  it('11. should return specific product quantity when product name is mentioned', () => {
+    const res = AIService.processQuery('How many almonds are available?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
     expect(res.intent).toBe('CHECK_PRODUCT_QUANTITY');
     expect(res.text).toContain('California Almonds: 2 kg');
+  });
+
+  it('12. should handle unknown questions gracefully with help guidance', () => {
+    const res = AIService.processQuery('What is the weather today?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+    expect(res.intent).toBe('DEFAULT_HELP');
+    expect(res.text).toContain('I didn\'t quite catch that');
   });
 });
