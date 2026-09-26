@@ -17,20 +17,31 @@ export interface VoiceRecognitionCallbacks {
 export class VoiceService {
   private recognition: any = null;
   private isListening: boolean = false;
+  private shouldBeListening: boolean = false;
   private currentLang: string = 'en-US';
+  private callbacks: VoiceRecognitionCallbacks | null = null;
 
   constructor() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    this.initRecognition();
+  }
+
+  private initRecognition(): void {
+    const SpeechRecognition = (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)) ||
+      (globalThis as any).SpeechRecognition;
+
     if (SpeechRecognition) {
       this.recognition = new SpeechRecognition();
-      this.recognition.continuous = false;
+      this.recognition.continuous = true;
       this.recognition.interimResults = true;
       this.recognition.lang = this.currentLang;
     }
   }
 
   public isSupported(): boolean {
-    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    return !!(
+      (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)) ||
+      (globalThis as any).SpeechRecognition
+    );
   }
 
   public setLanguage(langCode: string): void {
@@ -42,23 +53,35 @@ export class VoiceService {
 
   public toggleListening(callbacks: VoiceRecognitionCallbacks, langCode: string = 'en-US'): void {
     this.setLanguage(langCode);
+    this.callbacks = callbacks;
 
     if (!this.isSupported()) {
       callbacks.onError('Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.');
       return;
     }
 
-    if (this.isListening) {
+    if (this.shouldBeListening) {
       this.stopListening();
-      callbacks.onStateChange('idle');
       return;
     }
 
+    this.startListeningSession();
+  }
+
+  private startListeningSession(): void {
+    if (!this.recognition) {
+      this.initRecognition();
+    }
+    if (!this.recognition) return;
+
+    this.shouldBeListening = true;
     let accumulatedFinalTranscript = '';
 
     this.recognition.onstart = () => {
       this.isListening = true;
-      callbacks.onStateChange('listening');
+      if (this.callbacks) {
+        this.callbacks.onStateChange('listening');
+      }
     };
 
     this.recognition.onresult = (event: any) => {
@@ -73,40 +96,57 @@ export class VoiceService {
       }
 
       const activeText = accumulatedFinalTranscript || interimTranscript;
-      // Only send real non-empty speech text to the input field
-      if (activeText && activeText.trim().length > 0) {
-        callbacks.onResult(activeText.trim());
+      if (activeText && activeText.trim().length > 0 && this.callbacks) {
+        this.callbacks.onResult(activeText.trim());
       }
     };
 
     this.recognition.onerror = (event: any) => {
-      this.isListening = false;
-      callbacks.onStateChange('idle');
-
       if (event.error === 'not-allowed') {
-        callbacks.onError('Microphone permission was denied. Please allow microphone access in your browser site settings.');
-      } else if (event.error === 'no-speech') {
-        // Silent timeout when user says nothing: do not display error, do not insert text
-      } else if (event.error !== 'aborted') {
-        callbacks.onError(`Voice recognition notice: ${event.error}`);
+        this.shouldBeListening = false;
+        this.isListening = false;
+        if (this.callbacks) {
+          this.callbacks.onError('Microphone permission was denied. Please allow microphone access in your browser site settings.');
+          this.callbacks.onStateChange('idle');
+        }
+      } else if (event.error === 'no-speech' || event.error === 'aborted') {
+        // Non-fatal timeouts or aborts: onend will handle safe restart if shouldBeListening is true
+      } else {
+        if (this.callbacks) {
+          this.callbacks.onError(`Voice recognition notice: ${event.error}`);
+        }
       }
     };
 
     this.recognition.onend = () => {
       this.isListening = false;
-      callbacks.onStateChange('idle');
+      if (this.shouldBeListening) {
+        // Safely restart continuous recognition if user did not intentionally stop
+        try {
+          this.recognition.start();
+        } catch (e) {
+          this.shouldBeListening = false;
+          if (this.callbacks) {
+            this.callbacks.onStateChange('idle');
+          }
+        }
+      } else {
+        if (this.callbacks) {
+          this.callbacks.onStateChange('idle');
+        }
+      }
     };
 
     try {
       this.recognition.start();
     } catch (err) {
       console.warn('SpeechRecognition start error:', err);
-      this.isListening = false;
-      callbacks.onStateChange('idle');
+      this.isListening = true;
     }
   }
 
   public stopListening(): void {
+    this.shouldBeListening = false;
     if (this.recognition && this.isListening) {
       try {
         this.recognition.stop();
@@ -114,6 +154,9 @@ export class VoiceService {
         // Silent catch for already stopped instance
       }
       this.isListening = false;
+      if (this.callbacks) {
+        this.callbacks.onStateChange('idle');
+      }
     }
   }
 }
