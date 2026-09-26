@@ -17,15 +17,18 @@ export class AIService {
     // 1. Speech-to-text (STT) phonetic mis-transcription artifacts (ASCII words - use word boundaries)
     q = q.replace(/\bin the porur\b/gi, 'entha porul');
     q = q.replace(/\bin the porul\b/gi, 'entha porul');
+    q = q.replace(/\benter product\b/gi, 'entha products');
+    q = q.replace(/\bentha product\b/gi, 'entha products');
     q = q.replace(/\bporur\b/gi, 'porul');
     q = q.replace(/\bkurawar\b/gi, 'kurai');
     q = q.replace(/\birukkathu\b/gi, 'irukku');
     q = q.replace(/\birukkirathu\b/gi, 'irukku');
     q = q.replace(/\birukkuthu\b/gi, 'irukku');
+    q = q.replace(/\bkuraivaga\b/gi, 'kurai');
     q = q.replace(/\bkuraiyaga\b/gi, 'kurai');
     q = q.replace(/\bkuraiya\b/gi, 'kurai');
-    q = q.replace(/\bkammiya\b/gi, 'kammi');
     q = q.replace(/\bkammiyaga\b/gi, 'kammi');
+    q = q.replace(/\bkammiya\b/gi, 'kammi');
 
     // 2. Tamil Unicode words (no \b because \b only matches ASCII \w)
     q = q.replace(/குறைவாக/gi, 'kurai');
@@ -395,9 +398,9 @@ export class AIService {
     // 11. Specific Product Search Intent (Filter out Tanglish/English stop words)
     const stopWords = new Set([
       'in', 'the', 'is', 'are', 'what', 'which', 'how', 'show', 'my', 'many', 'much', 'of', 'for', 'to', 'do', 'i', 'have',
-      'porul', 'porutkal', 'products', 'product', 'stock', 'ethu', 'edhai', 'enna', 'irukku', 'kammi', 'kurai',
-      'pannanum', 'vendum', 'kadai', 'labam', 'virpana', 'irukkirathu', 'irukkathu', 'kurawar', 'kuraiya', 'kaattu',
-      'item', 'items', 'status', 'level', 'levels'
+      'entha', 'porul', 'porutkal', 'products', 'product', 'stock', 'ethu', 'edhai', 'enna', 'irukku', 'kammi', 'kurai',
+      'pannanum', 'vendum', 'kadai', 'labam', 'virpana', 'irukkirathu', 'irukkathu', 'kurawar', 'kuraiya', 'kuraiyaga',
+      'kuraivaga', 'kammiya', 'kammiyaga', 'kaattu', 'item', 'items', 'status', 'level', 'levels'
     ]);
 
     const queryWords = query.split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));

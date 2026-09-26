@@ -235,49 +235,67 @@ describe('AI Assistant Intent Processor with Tamil & Tanglish Support (aiService
       expect(res.text).toContain('Whole Cashews');
     });
 
-    it('8. Tanglish Reorder: "edhai reorder pannanum"', () => {
+    it('8. Tanglish Low Stock STT variation: "Entha products kuraivaga irukku?"', () => {
+      const res = AIService.processQuery('Entha products kuraivaga irukku?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+      expect(res.intent).toBe('CHECK_LOW_STOCK');
+      expect(res.text).toContain('Whole Cashews');
+    });
+
+    it('9. Tanglish Low Stock STT variation: "entha product kuraiyaga irukku"', () => {
+      const res = AIService.processQuery('entha product kuraiyaga irukku', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+      expect(res.intent).toBe('CHECK_LOW_STOCK');
+      expect(res.text).toContain('Whole Cashews');
+    });
+
+    it('10. Tanglish Low Stock STT variation: "kuraiyaga irukkuthu"', () => {
+      const res = AIService.processQuery('kuraiyaga irukkuthu', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+      expect(res.intent).toBe('CHECK_LOW_STOCK');
+      expect(res.text).toContain('Whole Cashews');
+    });
+
+    it('11. Tanglish Reorder: "edhai reorder pannanum"', () => {
       const res = AIService.processQuery('edhai reorder pannanum', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('RESTOCK_REQUIRED');
       expect(res.text).toContain('Reorder');
     });
 
-    it('9. Tanglish Reorder variation: "enna reorder pannanum"', () => {
+    it('12. Tanglish Reorder variation: "enna reorder pannanum"', () => {
       const res = AIService.processQuery('enna reorder pannanum', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('RESTOCK_REQUIRED');
       expect(res.text).toContain('Reorder');
     });
 
-    it('10. Tamil Critical Stock: "எந்த பொருட்கள் critical-ஆ இருக்கு?"', () => {
+    it('13. Tamil Critical Stock: "எந்த பொருட்கள் critical-ஆ இருக்கு?"', () => {
       const res = AIService.processQuery('எந்த பொருட்கள் critical-ஆ இருக்கு?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
       expect(res.intent).toBe('CHECK_CRITICAL_STOCK');
       expect(res.text).toContain('California Almonds');
     });
 
-    it('11. Tamil Today Sales: "இன்றைய sales எவ்வளவு?"', () => {
+    it('14. Tamil Today Sales: "இன்றைய sales எவ்வளவு?"', () => {
       const res = AIService.processQuery('இன்றைய sales எவ்வளவு?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
       expect(res.intent).toBe('CHECK_TODAY_SALES');
       expect(res.text).toContain('இன்றைய விற்பனை: ₹1,900');
     });
 
-    it('12. Tamil Profit: "எவ்வளவு profit வந்திருக்கு?"', () => {
+    it('15. Tamil Profit: "எவ்வளவு profit வந்திருக்கு?"', () => {
       const res = AIService.processQuery('எவ்வளவு profit வந்திருக்கு?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
       expect(res.intent).toBe('CHECK_PROFIT');
       expect(res.text).toContain('நிகர லாபம்');
     });
 
-    it('13. Tamil Top Selling: "என்ன பொருட்கள் அதிகமாக விற்றிருக்கிறது?"', () => {
+    it('16. Tamil Top Selling: "என்ன பொருட்கள் அதிகமாக விற்றிருக்கிறது?"', () => {
       const res = AIService.processQuery('என்ன பொருட்கள் அதிகமாக விற்றிருக்கிறது?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
       expect(res.intent).toBe('CHECK_TOP_SELLING');
       expect(res.text).toContain('அதிகமாக விற்ற பொருட்கள்');
     });
 
-    it('14. Tamil Shop Summary: "கடை summary"', () => {
+    it('17. Tamil Shop Summary: "கடை summary"', () => {
       const res = AIService.processQuery('கடை summary', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
       expect(res.intent).toBe('CHECK_SHOP_SUMMARY');
       expect(res.text).toContain('கடை விவரம்');
     });
 
-    it('15. Tamil Graceful Fallback for unknown questions', () => {
+    it('18. Tamil Graceful Fallback for unknown questions', () => {
       const res = AIService.processQuery('என்ன வானிலை இன்று?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
       expect(res.intent).toBe('DEFAULT_HELP');
       expect(res.text).toContain('மன்னிக்கவும், கேட்கப்பட்ட கேள்வி புரியவில்லை');

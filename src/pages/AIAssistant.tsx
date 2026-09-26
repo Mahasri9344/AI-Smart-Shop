@@ -151,17 +151,22 @@ export const AIAssistant: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          {/* Language Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-color)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-            <Globe size={16} style={{ color: 'var(--accent-primary)' }} />
-            <select
-              value={selectedLang}
-              onChange={(e) => setSelectedLang(e.target.value as 'en' | 'ta')}
-              style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', outline: 'none' }}
-            >
-              <option value="en">English 🇬🇧</option>
-              <option value="ta">Tamil (தமிழ்) 🇮🇳</option>
-            </select>
+          {/* Language Selector & Voice Hint */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-color)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+              <Globe size={16} style={{ color: 'var(--accent-primary)' }} />
+              <select
+                value={selectedLang}
+                onChange={(e) => setSelectedLang(e.target.value as 'en' | 'ta')}
+                style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', outline: 'none' }}
+              >
+                <option value="en">English 🇬🇧</option>
+                <option value="ta">Tamil (தமிழ்) 🇮🇳</option>
+              </select>
+            </div>
+            <span style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+              Tip: For Tamil or Tanglish voice queries, select Tamil mode.
+            </span>
           </div>
 
           {isSpeaking && (
