@@ -17,6 +17,7 @@ export interface VoiceRecognitionCallbacks {
 export class VoiceService {
   private recognition: any = null;
   private isListening: boolean = false;
+  private currentLang: string = 'en-US';
 
   constructor() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -24,7 +25,7 @@ export class VoiceService {
       this.recognition = new SpeechRecognition();
       this.recognition.continuous = false;
       this.recognition.interimResults = true;
-      this.recognition.lang = 'en-US';
+      this.recognition.lang = this.currentLang;
     }
   }
 
@@ -32,7 +33,16 @@ export class VoiceService {
     return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
   }
 
-  public toggleListening(callbacks: VoiceRecognitionCallbacks): void {
+  public setLanguage(langCode: string): void {
+    this.currentLang = langCode;
+    if (this.recognition) {
+      this.recognition.lang = langCode;
+    }
+  }
+
+  public toggleListening(callbacks: VoiceRecognitionCallbacks, langCode: string = 'en-US'): void {
+    this.setLanguage(langCode);
+
     if (!this.isSupported()) {
       callbacks.onError('Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.');
       return;

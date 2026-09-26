@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useShop } from '../context/ShopContext';
 import { voiceService, type VoiceState } from '../services/voiceService';
 import { AIService } from '../services/aiService';
-import { Mic, Send, Sparkles, Volume2, AlertCircle, StopCircle } from 'lucide-react';
+import { Mic, Send, Sparkles, Volume2, AlertCircle, StopCircle, Globe } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -13,6 +13,8 @@ interface ChatMessage {
 
 export const AIAssistant: React.FC = () => {
   const { products, sales, purchases, suppliers } = useShop();
+
+  const [selectedLang, setSelectedLang] = useState<'en' | 'ta'>('en');
   
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -28,7 +30,16 @@ export const AIAssistant: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  const suggestedCommands = [
+  const suggestedCommands = selectedLang === 'ta' ? [
+    'கடை summary',
+    'எந்த பொருட்கள் குறைவாக இருக்கு?',
+    'எந்த பொருட்கள் critical-ஆ இருக்கு?',
+    'எதை reorder பண்ண வேண்டும்?',
+    'இன்றைய sales எவ்வளவு?',
+    'எவ்வளவு profit வந்திருக்கு?',
+    'சமீபத்திய purchases காட்டு',
+    'suppliers காட்டு'
+  ] : [
     'Give me a summary of my shop',
     'Which products are low in stock?',
     'Which products are critical?',
@@ -51,13 +62,14 @@ export const AIAssistant: React.FC = () => {
     };
   }, []);
 
-  const handleSpeakText = (textToSpeak: string) => {
+  const handleSpeakText = (textToSpeak: string, langHint?: string) => {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
+    utterance.lang = langHint === 'ta' || selectedLang === 'ta' ? 'ta-IN' : 'en-US';
 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
@@ -73,9 +85,11 @@ export const AIAssistant: React.FC = () => {
     }
   };
 
-  // Toggle REAL microphone-based speech recognition
+  // Toggle REAL microphone-based speech recognition with selected language
   const handleMicToggle = () => {
     setErrorMessage(null);
+
+    const speechLangCode = selectedLang === 'ta' ? 'ta-IN' : 'en-US';
 
     voiceService.toggleListening({
       onStateChange: (state) => {
@@ -90,7 +104,7 @@ export const AIAssistant: React.FC = () => {
         setErrorMessage(err);
         setVoiceState('idle');
       }
-    });
+    }, speechLangCode);
   };
 
   const handleSendQuery = (textQuery?: string) => {
@@ -105,8 +119,8 @@ export const AIAssistant: React.FC = () => {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    // 2. Process query via AIService with products, sales, purchases, and suppliers
-    const aiResult = AIService.processQuery(queryToProcess, products, sales, purchases, suppliers);
+    // 2. Process query via AIService with products, sales, purchases, suppliers, and language
+    const aiResult = AIService.processQuery(queryToProcess, products, sales, purchases, suppliers, selectedLang);
 
     const aiMsg: ChatMessage = {
       id: `ai-${Date.now()}`,
@@ -119,7 +133,7 @@ export const AIAssistant: React.FC = () => {
     setInputQuery('');
 
     // Automatically speak AI response for accessibility
-    handleSpeakText(aiResult.text);
+    handleSpeakText(aiResult.text, aiResult.lang);
   };
 
   return (
@@ -132,20 +146,35 @@ export const AIAssistant: React.FC = () => {
             AI Smart Assistant & Voice Interface
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
-            Ask questions using natural language or real voice commands
+            Ask questions using natural language or real voice commands (English & Tamil)
           </p>
         </div>
 
-        {isSpeaking && (
-          <button 
-            onClick={handleStopSpeaking}
-            className="btn btn-secondary btn-sm"
-            style={{ color: 'var(--status-critical)', borderColor: 'var(--status-critical-border)' }}
-          >
-            <StopCircle size={16} />
-            <span>Stop Audio Output</span>
-          </button>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {/* Language Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--surface-color)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+            <Globe size={16} style={{ color: 'var(--accent-primary)' }} />
+            <select
+              value={selectedLang}
+              onChange={(e) => setSelectedLang(e.target.value as 'en' | 'ta')}
+              style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', outline: 'none' }}
+            >
+              <option value="en">English 🇬🇧</option>
+              <option value="ta">Tamil (தமிழ்) 🇮🇳</option>
+            </select>
+          </div>
+
+          {isSpeaking && (
+            <button 
+              onClick={handleStopSpeaking}
+              className="btn btn-secondary btn-sm"
+              style={{ color: 'var(--status-critical)', borderColor: 'var(--status-critical-border)' }}
+            >
+              <StopCircle size={16} />
+              <span>Stop Audio Output</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Chat Container */}
@@ -253,7 +282,7 @@ export const AIAssistant: React.FC = () => {
               backgroundColor: 'var(--status-critical)',
               animation: 'pulseRed 1s infinite'
             }} />
-            <span>Listening to your voice... Speak your question now.</span>
+            <span>Listening in {selectedLang === 'ta' ? 'Tamil (ta-IN)' : 'English (en-US)'}... Speak your question now.</span>
           </div>
         )}
 
@@ -270,7 +299,7 @@ export const AIAssistant: React.FC = () => {
               flexShrink: 0,
               boxShadow: voiceState === 'listening' ? 'var(--shadow-glow-red)' : 'none'
             }}
-            title={voiceState === 'listening' ? "Click to stop listening" : "Click to start real voice input"}
+            title={voiceState === 'listening' ? "Click to stop listening" : `Click to start real voice input (${selectedLang === 'ta' ? 'Tamil' : 'English'})`}
           >
             <Mic size={20} style={{ color: voiceState === 'listening' ? '#ffffff' : 'var(--accent-primary)' }} />
           </button>
@@ -278,7 +307,7 @@ export const AIAssistant: React.FC = () => {
           <input
             type="text"
             className="form-input"
-            placeholder={voiceState === 'listening' ? "Listening... your speech will appear here..." : "Type your natural language query or click microphone..."}
+            placeholder={voiceState === 'listening' ? `Listening (${selectedLang === 'ta' ? 'Tamil' : 'English'})... your speech will appear here...` : "Type query in English/Tamil or click microphone..."}
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSendQuery()}
