@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { VoiceService } from './voiceService';
 
-describe('VoiceService Continuous Voice Input', () => {
+describe('VoiceService Continuous Voice Input & Language Configuration', () => {
   let mockRecognition: any;
 
   beforeEach(() => {
@@ -33,13 +33,19 @@ describe('VoiceService Continuous Voice Input', () => {
     expect(mockRecognition.continuous).toBe(true);
   });
 
-  it('3. should update language code via setLanguage', () => {
+  it('3. should set voice recognition language to ta-IN for Tamil mode', () => {
     const service = new VoiceService();
     service.setLanguage('ta-IN');
     expect(mockRecognition.lang).toBe('ta-IN');
   });
 
-  it('4. should start listening session and set state to listening onstart', () => {
+  it('4. should set voice recognition language to en-US for English mode', () => {
+    const service = new VoiceService();
+    service.setLanguage('en-US');
+    expect(mockRecognition.lang).toBe('en-US');
+  });
+
+  it('5. should start listening session with ta-IN language when requested', () => {
     const service = new VoiceService();
     let currentState = 'idle';
 
@@ -49,12 +55,29 @@ describe('VoiceService Continuous Voice Input', () => {
       onError: vi.fn()
     }, 'ta-IN');
 
+    expect(mockRecognition.lang).toBe('ta-IN');
     expect(mockRecognition.start).toHaveBeenCalled();
     mockRecognition.onstart();
     expect(currentState).toBe('listening');
   });
 
-  it('5. should safely restart on onend if user did not stop intentionally', () => {
+  it('6. should start listening session with en-US language when requested', () => {
+    const service = new VoiceService();
+    let currentState = 'idle';
+
+    service.toggleListening({
+      onStateChange: (state) => { currentState = state; },
+      onResult: vi.fn(),
+      onError: vi.fn()
+    }, 'en-US');
+
+    expect(mockRecognition.lang).toBe('en-US');
+    expect(mockRecognition.start).toHaveBeenCalled();
+    mockRecognition.onstart();
+    expect(currentState).toBe('listening');
+  });
+
+  it('7. should safely restart on onend if user did not stop intentionally', () => {
     const service = new VoiceService();
     service.toggleListening({
       onStateChange: vi.fn(),
@@ -70,7 +93,7 @@ describe('VoiceService Continuous Voice Input', () => {
     expect(mockRecognition.start).toHaveBeenCalledTimes(1);
   });
 
-  it('6. should stop and set state to idle when user stops intentionally', () => {
+  it('8. should stop and set state to idle when user stops intentionally', () => {
     const service = new VoiceService();
     let currentState = 'idle';
 

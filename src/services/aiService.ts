@@ -14,27 +14,63 @@ export class AIService {
   private static normalizeQuery(rawQuery: string): string {
     let q = rawQuery.toLowerCase().trim();
 
-    // 1. Speech-to-text (STT) phonetic mis-transcription artifacts (ASCII words - use word boundaries)
+    // 1. Speech-to-text (STT) phonetic mis-transcription artifacts & Tanglish variations
     q = q.replace(/\bin the porur\b/gi, 'entha porul');
     q = q.replace(/\bin the porul\b/gi, 'entha porul');
     q = q.replace(/\benter product\b/gi, 'entha products');
     q = q.replace(/\bentha product\b/gi, 'entha products');
+    q = q.replace(/\bproducts\b/gi, 'products');
+    q = q.replace(/\bproduct\b/gi, 'products');
     q = q.replace(/\bporur\b/gi, 'porul');
-    q = q.replace(/\bkurawar\b/gi, 'kurai');
+
+    q = q.replace(/\blowstock\b/gi, 'low stock');
+    q = q.replace(/\bre-order\b/gi, 'reorder');
+    q = q.replace(/\bprofitt\b/gi, 'profit');
+    q = q.replace(/\bsale\b/gi, 'sales');
+
+    q = q.replace(/\bena\b/gi, 'enna');
+
+    q = q.replace(/\birukuthu\b/gi, 'irukku');
+    q = q.replace(/\birukirathu\b/gi, 'irukku');
+    q = q.replace(/\biruku\b/gi, 'irukku');
     q = q.replace(/\birukkathu\b/gi, 'irukku');
     q = q.replace(/\birukkirathu\b/gi, 'irukku');
     q = q.replace(/\birukkuthu\b/gi, 'irukku');
+
     q = q.replace(/\bkuraivaga\b/gi, 'kurai');
     q = q.replace(/\bkuraiyaga\b/gi, 'kurai');
     q = q.replace(/\bkuraiya\b/gi, 'kurai');
+    q = q.replace(/\bkuraiva\b/gi, 'kurai');
+    q = q.replace(/\bkoraiya\b/gi, 'kurai');
+    q = q.replace(/\bkurawar\b/gi, 'kurai');
+
     q = q.replace(/\bkammiyaga\b/gi, 'kammi');
     q = q.replace(/\bkammiya\b/gi, 'kammi');
 
+    q = q.replace(/\binniku\b/gi, 'innaiku');
+    q = q.replace(/\bindrai\b/gi, 'innaiku');
+
+    q = q.replace(/\bevalo\b/gi, 'evlo');
+    q = q.replace(/\bevvalavu\b/gi, 'evlo');
+
+    q = q.replace(/\bvenum\b/gi, 'vendum');
+    q = q.replace(/\bvenumaa\b/gi, 'vendum');
+
+    q = q.replace(/\bkaamikka\b/gi, 'kaattu');
+    q = q.replace(/\bkamika\b/gi, 'kaattu');
+    q = q.replace(/\bkaatu\b/gi, 'kaattu');
+
+    q = q.replace(/\baachhu\b/gi, 'aachu');
+
     // 2. Tamil Unicode words (no \b because \b only matches ASCII \w)
     q = q.replace(/குறைவாக/gi, 'kurai');
+    q = q.replace(/குறைந்த/gi, 'kurai');
     q = q.replace(/குறைவு/gi, 'kurai');
     q = q.replace(/இருக்கிறது/gi, 'irukku');
     q = q.replace(/இருக்கு/gi, 'irukku');
+    q = q.replace(/விற்கிறது/gi, 'virpana');
+    q = q.replace(/லாபம்/gi, 'labam');
+    q = q.replace(/விற்பனை/gi, 'virpana');
 
     return q;
   }
@@ -55,7 +91,7 @@ export class AIService {
 
     const isTamilQuery = lang === 'ta' ||
       /[\u0B80-\u0BFF]/.test(rawQuery) ||
-      /\b(porul|porutkal|kammi|kurai|irukku|pannanum|vendum|virpana|labam|kadai|evvalavu|evalavu|edhai|enna|kaattu)\b/i.test(query);
+      /\b(porul|porutkal|kammi|kammiya|kurai|kuraiya|kuraivaga|kuraiva|koraiya|kurawar|irukku|iruku|irukkuthu|irukuthu|irukkirathu|irukirathu|irukkathu|irukkum|vanthurukku|pannanum|vendum|venum|venumaa|virpana|labam|kadai|evvalavu|evalavu|evlo|edhai|ethu|enna|ena|kaattu|kaamikka|kamika|kaatu|indha|entha|madhippu|vaangiyavai|innaiku|inniku|aachu)\b/i.test(query);
 
     const effectiveLang: 'en' | 'ta' = isTamilQuery ? 'ta' : 'en';
 
@@ -131,7 +167,8 @@ export class AIService {
       query.includes('edhai reorder') ||
       query.includes('enna reorder') ||
       rawLower.includes('எதை reorder') ||
-      rawLower.includes('என்ன reorder')
+      rawLower.includes('என்ன reorder') ||
+      rawLower.includes('reorder செய்ய')
     ) {
       const lowProducts = products.filter(p => p.status === 'LOW');
       const criticalProducts = products.filter(p => p.status === 'CRITICAL');
@@ -164,7 +201,7 @@ export class AIService {
 
     // 4. Low Stock Intent (explicit low stock check)
     if (
-      (query.includes('low') || query.includes('kammi') || query.includes('kurai') || rawLower.includes('குறைவாக') || rawLower.includes('குறைவு')) &&
+      (query.includes('low') || query.includes('kammi') || query.includes('kurai') || rawLower.includes('குறைவாக') || rawLower.includes('குறைந்த') || rawLower.includes('குறைவு')) &&
       !query.includes('reorder') &&
       !query.includes('restock')
     ) {
@@ -200,6 +237,7 @@ export class AIService {
       query.includes('top product') ||
       query.includes('best product') ||
       rawLower.includes('அதிகமாக விற்ற') ||
+      rawLower.includes('அதிகமாக விற்கிறது') ||
       query.includes('adhigamaga virpana') ||
       query.includes('adhigam virpana')
     ) {
@@ -377,7 +415,10 @@ export class AIService {
       query.includes('revenue') ||
       query.includes('sold') ||
       query.includes('virpana') ||
-      rawLower.includes('விற்பனை')
+      query.includes('innaiku') ||
+      query.includes('aachu') ||
+      rawLower.includes('விற்பனை') ||
+      (rawLower.includes('இன்று') && (query.includes('sale') || query.includes('virpana') || rawLower.includes('விற்பனை')))
     ) {
       const today = new Date().toDateString();
       const todaySales = sales.filter(s => new Date(s.timestamp).toDateString() === today);
@@ -400,7 +441,7 @@ export class AIService {
       'in', 'the', 'is', 'are', 'what', 'which', 'how', 'show', 'my', 'many', 'much', 'of', 'for', 'to', 'do', 'i', 'have',
       'entha', 'porul', 'porutkal', 'products', 'product', 'stock', 'ethu', 'edhai', 'enna', 'irukku', 'kammi', 'kurai',
       'pannanum', 'vendum', 'kadai', 'labam', 'virpana', 'irukkirathu', 'irukkathu', 'kurawar', 'kuraiya', 'kuraiyaga',
-      'kuraivaga', 'kammiya', 'kammiyaga', 'kaattu', 'item', 'items', 'status', 'level', 'levels'
+      'kuraivaga', 'kammiya', 'kammiyaga', 'kaattu', 'item', 'items', 'status', 'level', 'levels', 'innaiku', 'evlo', 'aachu'
     ]);
 
     const queryWords = query.split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));

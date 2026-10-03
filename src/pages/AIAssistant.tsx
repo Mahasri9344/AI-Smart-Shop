@@ -9,6 +9,7 @@ interface ChatMessage {
   sender: 'user' | 'ai';
   text: string;
   time: string;
+  lang?: 'en' | 'ta';
 }
 
 export const AIAssistant: React.FC = () => {
@@ -21,7 +22,8 @@ export const AIAssistant: React.FC = () => {
       id: 'init-1',
       sender: 'ai',
       text: '🤖 Hello! I am your AI Smart Shop Assistant. Ask me about stock status, low stock, critical items, reordering, sales, profit, inventory value, or suppliers.',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      lang: 'en'
     }
   ]);
 
@@ -69,7 +71,11 @@ export const AIAssistant: React.FC = () => {
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
-    utterance.lang = langHint === 'ta' || selectedLang === 'ta' ? 'ta-IN' : 'en-US';
+
+    const containsTamilChars = /[\u0B80-\u0BFF]/.test(textToSpeak);
+    const isTa = langHint === 'ta' || containsTamilChars;
+
+    utterance.lang = isTa ? 'ta-IN' : 'en-US';
 
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
@@ -126,7 +132,8 @@ export const AIAssistant: React.FC = () => {
       id: `ai-${Date.now()}`,
       sender: 'ai',
       text: aiResult.text,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      lang: aiResult.lang
     };
 
     setMessages(prev => [...prev, userMsg, aiMsg]);
@@ -165,7 +172,7 @@ export const AIAssistant: React.FC = () => {
               </select>
             </div>
             <span style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-              Tip: For Tamil or Tanglish voice queries, select Tamil mode.
+              தமிழ் அல்லது Tanglish voice queriesக்கு Tamil mode தேர்வு செய்யவும்.
             </span>
           </div>
 
@@ -249,7 +256,7 @@ export const AIAssistant: React.FC = () => {
                 <div style={{ fontSize: '0.92rem', fontWeight: 500 }}>{msg.text}</div>
                 {msg.sender === 'ai' && (
                   <button 
-                    onClick={() => handleSpeakText(msg.text)}
+                    onClick={() => handleSpeakText(msg.text, msg.lang)}
                     style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px' }}
                     title="Speak response"
                   >

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { AIService } from './aiService';
 import type { Product, Sale, Purchase, Supplier } from '../types';
 
-describe('AI Assistant Intent Processor with Tamil & Tanglish Support (aiService.ts)', () => {
+describe('AI Assistant Intent Processor with Automatic Language Matching (aiService.ts)', () => {
   const sampleProducts: Product[] = [
     {
       id: 'p1',
@@ -113,192 +113,248 @@ describe('AI Assistant Intent Processor with Tamil & Tanglish Support (aiService
   ];
 
   // --- English Intent Tests ---
-  describe('English Queries', () => {
-    it('1. should identify CHECK_LOW_STOCK intent when asking for low stock items', () => {
+  describe('English Queries (English question -> English response)', () => {
+    it('1. should identify CHECK_LOW_STOCK intent in English', () => {
       const res = AIService.processQuery('Which products are low in stock?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('CHECK_LOW_STOCK');
       expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('en');
     });
 
-    it('2. should identify CHECK_CRITICAL_STOCK intent when query contains "critical"', () => {
+    it('2. should identify CHECK_CRITICAL_STOCK intent in English', () => {
       const res = AIService.processQuery('Which products are critical?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('CHECK_CRITICAL_STOCK');
       expect(res.text).toContain('California Almonds');
+      expect(res.lang).toBe('en');
     });
 
-    it('3. should identify RESTOCK_REQUIRED intent when query contains "reorder"', () => {
+    it('3. should identify RESTOCK_REQUIRED intent in English', () => {
       const res = AIService.processQuery('What should I reorder?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('RESTOCK_REQUIRED');
       expect(res.text).toContain('CRITICAL');
+      expect(res.lang).toBe('en');
     });
 
-    it('4. should calculate today\'s revenue correctly for sales intent', () => {
+    it('4. should calculate today\'s revenue correctly in English', () => {
       const res = AIService.processQuery('What are today\'s sales?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('CHECK_TODAY_SALES');
       expect(res.text).toContain('₹1,900');
+      expect(res.lang).toBe('en');
     });
 
-    it('5. should identify CHECK_TOP_SELLING intent and rank products', () => {
+    it('5. should identify CHECK_TOP_SELLING intent in English', () => {
       const res = AIService.processQuery('Which products are top selling?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('CHECK_TOP_SELLING');
       expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('en');
     });
 
-    it('6. should calculate inventory retail and cost valuation correctly', () => {
+    it('6. should calculate inventory retail and cost valuation in English', () => {
       const res = AIService.processQuery('How much inventory value do I have?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('CHECK_INVENTORY_VALUE');
       expect(res.text).toContain('₹16,000');
+      expect(res.lang).toBe('en');
     });
 
-    it('7. should calculate profit and gross margin percentage', () => {
+    it('7. should calculate profit and gross margin in English', () => {
       const res = AIService.processQuery('How much profit have I made?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('CHECK_PROFIT');
       expect(res.text).toContain('Total sales revenue');
+      expect(res.lang).toBe('en');
     });
 
-    it('8. should return recent purchase orders', () => {
+    it('8. should return recent purchase orders in English', () => {
       const res = AIService.processQuery('Show my recent purchases.', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('CHECK_PURCHASES');
       expect(res.text).toContain('Organic Turmeric');
+      expect(res.lang).toBe('en');
     });
 
-    it('9. should return active suppliers from directory', () => {
+    it('9. should return active suppliers in English', () => {
       const res = AIService.processQuery('Show my suppliers.', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('CHECK_SUPPLIERS');
       expect(res.text).toContain('Royal Spices');
       expect(res.text).toContain('Green Harvest');
+      expect(res.lang).toBe('en');
     });
 
-    it('10. should generate holistic executive summary of shop', () => {
+    it('10. should generate executive summary in English', () => {
       const res = AIService.processQuery('Give me a summary of my shop.', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('CHECK_SHOP_SUMMARY');
       expect(res.text).toContain('Shop Summary');
       expect(res.text).toContain('3 products');
+      expect(res.lang).toBe('en');
     });
 
-    it('11. should return specific product quantity when product name is mentioned', () => {
+    it('11. should return product quantity in English', () => {
       const res = AIService.processQuery('How many almonds are available?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('CHECK_PRODUCT_QUANTITY');
       expect(res.text).toContain('California Almonds: 2 kg');
+      expect(res.lang).toBe('en');
     });
 
-    it('12. should handle unknown questions gracefully with help guidance', () => {
+    it('12. should handle unknown questions gracefully in English', () => {
       const res = AIService.processQuery('What is the weather today?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'en');
       expect(res.intent).toBe('DEFAULT_HELP');
       expect(res.text).toContain('I didn\'t quite catch that');
+      expect(res.lang).toBe('en');
     });
   });
 
-  // --- Tamil & Tanglish Intent Tests ---
-  describe('Tamil & Tanglish Queries & STT Artifact Normalization', () => {
-    it('1. Tamil Low Stock Unicode: "எந்த பொருட்கள் குறைவாக இருக்கு?"', () => {
-      const res = AIService.processQuery('எந்த பொருட்கள் குறைவாக இருக்கு?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
+  // --- Tamil & Tanglish Automatic Language Matching Tests ---
+  describe('Tamil & Tanglish Queries (Tamil/Tanglish question -> Tamil response)', () => {
+    it('1. Tamil Unicode question -> Tamil response: "எந்த பொருட்கள் குறைவாக இருக்கு?"', () => {
+      const res = AIService.processQuery('எந்த பொருட்கள் குறைவாக இருக்கு?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('CHECK_LOW_STOCK');
       expect(res.text).toContain('Whole Cashews');
       expect(res.lang).toBe('ta');
     });
 
-    it('2. Tamil Low Stock Unicode variation: "எந்த பொருட்கள் குறைவாக இருக்கிறது?"', () => {
-      const res = AIService.processQuery('எந்த பொருட்கள் குறைவாக இருக்கிறது?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
+    it('2. Tamil Unicode question -> Tamil response: "எந்த பொருட்கள் குறைவாக இருக்கிறது?"', () => {
+      const res = AIService.processQuery('எந்த பொருட்கள் குறைவாக இருக்கிறது?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('CHECK_LOW_STOCK');
       expect(res.text).toContain('Whole Cashews');
       expect(res.lang).toBe('ta');
     });
 
-    it('3. STT Artifact: "in the Porul kuraiya irukku"', () => {
+    it('3. Tanglish question -> Tamil response: "in the Porul kuraiya irukku"', () => {
       const res = AIService.processQuery('in the Porul kuraiya irukku', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('CHECK_LOW_STOCK');
       expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('ta');
     });
 
-    it('4. STT Artifact: "in the Porur kurawar irukkathu"', () => {
+    it('4. Tanglish question -> Tamil response: "in the Porur kurawar irukkathu"', () => {
       const res = AIService.processQuery('in the Porur kurawar irukkathu', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('CHECK_LOW_STOCK');
       expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('ta');
     });
 
-    it('5. Tanglish Low Stock: "entha porul kammiya irukku"', () => {
+    it('5. Tanglish question -> Tamil response: "entha porul kammiya irukku"', () => {
       const res = AIService.processQuery('entha porul kammiya irukku', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('CHECK_LOW_STOCK');
       expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('ta');
     });
 
-    it('6. Tanglish Low Stock: "entha products kammiya irukku"', () => {
+    it('6. Tanglish question -> Tamil response: "entha products kammiya irukku"', () => {
       const res = AIService.processQuery('entha products kammiya irukku', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('CHECK_LOW_STOCK');
       expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('ta');
     });
 
-    it('7. Tanglish Stock Low: "indha porul stock kammiya irukku"', () => {
+    it('7. Tanglish question -> Tamil response: "indha porul stock kammiya irukku"', () => {
       const res = AIService.processQuery('indha porul stock kammiya irukku', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('CHECK_LOW_STOCK');
       expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('ta');
     });
 
-    it('8. Tanglish Low Stock STT variation: "Entha products kuraivaga irukku?"', () => {
+    it('8. Tanglish question -> Tamil response: "Entha products kuraivaga irukku?"', () => {
       const res = AIService.processQuery('Entha products kuraivaga irukku?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('CHECK_LOW_STOCK');
       expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('ta');
     });
 
-    it('9. Tanglish Low Stock STT variation: "entha product kuraiyaga irukku"', () => {
+    it('9. Tanglish question -> Tamil response: "entha product kuraiyaga irukku"', () => {
       const res = AIService.processQuery('entha product kuraiyaga irukku', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('CHECK_LOW_STOCK');
       expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('ta');
     });
 
-    it('10. Tanglish Low Stock STT variation: "kuraiyaga irukkuthu"', () => {
+    it('10. Tanglish question -> Tamil response: "kuraiyaga irukkuthu"', () => {
       const res = AIService.processQuery('kuraiyaga irukkuthu', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('CHECK_LOW_STOCK');
       expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('ta');
     });
 
-    it('11. Tanglish Reorder: "edhai reorder pannanum"', () => {
+    it('11. Tanglish question -> Tamil response: "enna products low stock la irukku?"', () => {
+      const res = AIService.processQuery('enna products low stock la irukku?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+      expect(res.intent).toBe('CHECK_LOW_STOCK');
+      expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('ta');
+    });
+
+    it('12. Tanglish question -> Tamil response: "innaiku evlo sales aachu?"', () => {
+      const res = AIService.processQuery('innaiku evlo sales aachu?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+      expect(res.intent).toBe('CHECK_TODAY_SALES');
+      expect(res.text).toContain('இன்றைய விற்பனை: ₹1,900');
+      expect(res.lang).toBe('ta');
+    });
+
+    it('13. Tamil Unicode: "குறைந்த stock"', () => {
+      const res = AIService.processQuery('குறைந்த stock', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+      expect(res.intent).toBe('CHECK_LOW_STOCK');
+      expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('ta');
+    });
+
+    it('14. Tamil Unicode: "குறைவாக உள்ள பொருட்கள்"', () => {
+      const res = AIService.processQuery('குறைவாக உள்ள பொருட்கள்', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+      expect(res.intent).toBe('CHECK_LOW_STOCK');
+      expect(res.text).toContain('Whole Cashews');
+      expect(res.lang).toBe('ta');
+    });
+
+    it('15. Tamil Unicode: "இன்று எவ்வளவு sales?"', () => {
+      const res = AIService.processQuery('இன்று எவ்வளவு sales?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+      expect(res.intent).toBe('CHECK_TODAY_SALES');
+      expect(res.text).toContain('இன்றைய விற்பனை: ₹1,900');
+      expect(res.lang).toBe('ta');
+    });
+
+    it('16. Tamil Unicode: "லாபம் எவ்வளவு?"', () => {
+      const res = AIService.processQuery('லாபம் எவ்வளவு?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+      expect(res.intent).toBe('CHECK_PROFIT');
+      expect(res.text).toContain('நிகர லாபம்');
+      expect(res.lang).toBe('ta');
+    });
+
+    it('17. Tamil Unicode: "எந்த பொருட்கள் அதிகமாக விற்கிறது?"', () => {
+      const res = AIService.processQuery('எந்த பொருட்கள் அதிகமாக விற்கிறது?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+      expect(res.intent).toBe('CHECK_TOP_SELLING');
+      expect(res.text).toContain('அதிகமாக விற்ற பொருட்கள்');
+      expect(res.lang).toBe('ta');
+    });
+
+    it('18. Tamil Unicode: "என்ன பொருட்களை reorder செய்ய வேண்டும்?"', () => {
+      const res = AIService.processQuery('என்ன பொருட்களை reorder செய்ய வேண்டும்?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
+      expect(res.intent).toBe('RESTOCK_REQUIRED');
+      expect(res.text).toContain('Reorder');
+      expect(res.lang).toBe('ta');
+    });
+
+    it('19. Tanglish Reorder: "edhai reorder pannanum"', () => {
       const res = AIService.processQuery('edhai reorder pannanum', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('RESTOCK_REQUIRED');
       expect(res.text).toContain('Reorder');
+      expect(res.lang).toBe('ta');
     });
 
-    it('12. Tanglish Reorder variation: "enna reorder pannanum"', () => {
+    it('20. Tanglish Reorder variation: "enna reorder pannanum"', () => {
       const res = AIService.processQuery('enna reorder pannanum', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('RESTOCK_REQUIRED');
       expect(res.text).toContain('Reorder');
+      expect(res.lang).toBe('ta');
     });
 
-    it('13. Tamil Critical Stock: "எந்த பொருட்கள் critical-ஆ இருக்கு?"', () => {
-      const res = AIService.processQuery('எந்த பொருட்கள் critical-ஆ இருக்கு?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
+    it('21. Tamil Critical Stock: "எந்த பொருட்கள் critical-ஆ இருக்கு?"', () => {
+      const res = AIService.processQuery('எந்த பொருட்கள் critical-ஆ இருக்கு?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('CHECK_CRITICAL_STOCK');
       expect(res.text).toContain('California Almonds');
+      expect(res.lang).toBe('ta');
     });
 
-    it('14. Tamil Today Sales: "இன்றைய sales எவ்வளவு?"', () => {
-      const res = AIService.processQuery('இன்றைய sales எவ்வளவு?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
-      expect(res.intent).toBe('CHECK_TODAY_SALES');
-      expect(res.text).toContain('இன்றைய விற்பனை: ₹1,900');
-    });
-
-    it('15. Tamil Profit: "எவ்வளவு profit வந்திருக்கு?"', () => {
-      const res = AIService.processQuery('எவ்வளவு profit வந்திருக்கு?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
-      expect(res.intent).toBe('CHECK_PROFIT');
-      expect(res.text).toContain('நிகர லாபம்');
-    });
-
-    it('16. Tamil Top Selling: "என்ன பொருட்கள் அதிகமாக விற்றிருக்கிறது?"', () => {
-      const res = AIService.processQuery('என்ன பொருட்கள் அதிகமாக விற்றிருக்கிறது?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
-      expect(res.intent).toBe('CHECK_TOP_SELLING');
-      expect(res.text).toContain('அதிகமாக விற்ற பொருட்கள்');
-    });
-
-    it('17. Tamil Shop Summary: "கடை summary"', () => {
-      const res = AIService.processQuery('கடை summary', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
-      expect(res.intent).toBe('CHECK_SHOP_SUMMARY');
-      expect(res.text).toContain('கடை விவரம்');
-    });
-
-    it('18. Tamil Graceful Fallback for unknown questions', () => {
-      const res = AIService.processQuery('என்ன வானிலை இன்று?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers, 'ta');
+    it('22. Tamil Graceful Fallback for unknown questions', () => {
+      const res = AIService.processQuery('என்ன வானிலை இன்று?', sampleProducts, sampleSales, samplePurchases, sampleSuppliers);
       expect(res.intent).toBe('DEFAULT_HELP');
       expect(res.text).toContain('மன்னிக்கவும், கேட்கப்பட்ட கேள்வி புரியவில்லை');
+      expect(res.lang).toBe('ta');
     });
   });
 });
