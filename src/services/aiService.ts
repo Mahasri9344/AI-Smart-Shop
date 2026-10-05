@@ -9,74 +9,181 @@ export interface AIResponse {
 
 export class AIService {
   /**
-   * Normalizes speech-to-text transcript phonetics, spacing variations, and spoken Tamil/Tanglish synonyms.
+   * Normalizes raw user queries by performing NFC Unicode normalization, lowercase conversion,
+   * punctuation removal, collapsing extra whitespace, and mapping spoken Tamil script, Tanglish,
+   * and mixed Tamil-English spelling variations to canonical query terms for semantic intent scoring.
+   * Note: The original raw user query is preserved for chat display.
    */
   private static normalizeQuery(rawQuery: string): string {
-    let q = rawQuery.toLowerCase().trim();
+    if (!rawQuery) return '';
 
-    // 1. Speech-to-text (STT) phonetic mis-transcription artifacts & Tanglish variations
-    q = q.replace(/\bin the porur\b/gi, 'entha porul');
-    q = q.replace(/\bin the porul\b/gi, 'entha porul');
-    q = q.replace(/\benter product\b/gi, 'entha products');
-    q = q.replace(/\bentha product\b/gi, 'entha products');
-    q = q.replace(/\bproducts\b/gi, 'products');
-    q = q.replace(/\bproduct\b/gi, 'products');
-    q = q.replace(/\bporur\b/gi, 'porul');
+    // 1. NFC normalization & basic lowercasing
+    let q = rawQuery.normalize('NFC').toLowerCase().trim();
 
-    q = q.replace(/\blowstock\b/gi, 'low stock');
-    q = q.replace(/\bre-order\b/gi, 'reorder');
-    q = q.replace(/\bprofitt\b/gi, 'profit');
-    q = q.replace(/\bsale\b/gi, 'sales');
+    // 2. Remove punctuation and extra whitespace
+    q = q.replace(/[?,!.:;\(\)\"\']/g, ' ');
+    q = q.replace(/\s+/g, ' ').trim();
 
+    // 3. Spoken / Written Tamil & Tanglish variations mapping
+
+    // Romba / Critical / Urgent indicators
+    q = q.replace(/ரொம்ப/g, 'romba');
+    q = q.replace(/மிகவும்/g, 'romba');
+
+    // Adhigam / Top selling indicators (process before kammi to avoid partial string conflicts)
+    q = q.replace(/அதிகமாக/g, 'adhigam');
+    q = q.replace(/அதிகம்/g, 'adhigam');
+    q = q.replace(/\badhigamaga\b/gi, 'adhigam');
+    q = q.replace(/\badhigama\b/gi, 'adhigam');
+
+    q = q.replace(/\benthenna\b/gi, 'enna');
+    q = q.replace(/\bennaenna\b/gi, 'enna');
+    q = q.replace(/\bentha\b/gi, 'entha');
     q = q.replace(/\bena\b/gi, 'enna');
+    q = q.replace(/\bethu\b/gi, 'enna');
+    q = q.replace(/\bedhai\b/gi, 'enna');
+    q = q.replace(/\bethai\b/gi, 'enna');
 
+    // Spoken variations for in shop / kadaiyila
+    q = q.replace(/\bkadaiyila\b/gi, 'kadai');
+    q = q.replace(/\bkadaiyil\b/gi, 'kadai');
+    q = q.replace(/கடையில்/g, 'kadai');
+
+    // Spoken verbs / existentials
+    q = q.replace(/\birukirukku\b/gi, 'irukku');
+    q = q.replace(/\birukkura\b/gi, 'irukku');
+    q = q.replace(/\birukura\b/gi, 'irukku');
+    q = q.replace(/\birukkuthu\b/gi, 'irukku');
     q = q.replace(/\birukuthu\b/gi, 'irukku');
+    q = q.replace(/\birukkirathu\b/gi, 'irukku');
     q = q.replace(/\birukirathu\b/gi, 'irukku');
     q = q.replace(/\biruku\b/gi, 'irukku');
     q = q.replace(/\birukkathu\b/gi, 'irukku');
-    q = q.replace(/\birukkirathu\b/gi, 'irukku');
-    q = q.replace(/\birukkuthu\b/gi, 'irukku');
+    q = q.replace(/\birukkum\b/gi, 'irukku');
+    q = q.replace(/\bullana\b/gi, 'irukku');
+    q = q.replace(/\bullathu\b/gi, 'irukku');
+    q = q.replace(/இருக்கின்றன/g, 'irukku');
+    q = q.replace(/இருக்கிறது/g, 'irukku');
+    q = q.replace(/இருக்கின்றது/g, 'irukku');
+    q = q.replace(/இருக்கு/g, 'irukku');
+    q = q.replace(/உள்ளன/g, 'irukku');
+    q = q.replace(/உள்ளது/g, 'irukku');
 
-    q = q.replace(/\bkuraivaga\b/gi, 'kurai');
-    q = q.replace(/\bkuraiyaga\b/gi, 'kurai');
-    q = q.replace(/\bkuraiya\b/gi, 'kurai');
-    q = q.replace(/\bkuraiva\b/gi, 'kurai');
+    // Spoken variations for low stock / decreasing / kammi / korai
     q = q.replace(/\bkoraiya\b/gi, 'kurai');
+    q = q.replace(/\bkorai\b/gi, 'kurai');
+    q = q.replace(/\bkuraiya\b/gi, 'kurai');
+    q = q.replace(/\bkuraiyaga\b/gi, 'kurai');
+    q = q.replace(/\bkuraivaga\b/gi, 'kurai');
+    q = q.replace(/\bkuraiva\b/gi, 'kurai');
     q = q.replace(/\bkurawar\b/gi, 'kurai');
+    q = q.replace(/\bkammiyaga\b/gi, 'kurai');
+    q = q.replace(/\bkammiya\b/gi, 'kurai');
+    q = q.replace(/\bkamiya\b/gi, 'kurai');
+    q = q.replace(/\bkammi\b/gi, 'kurai');
+    q = q.replace(/குறையுது/g, 'kurai');
+    q = q.replace(/குறைவாக/g, 'kurai');
+    q = q.replace(/குறைவா/g, 'kurai');
+    q = q.replace(/குறைவான/g, 'kurai');
+    q = q.replace(/குறைவு/g, 'kurai');
+    q = q.replace(/குறைந்து/g, 'kurai');
+    q = q.replace(/குறைந்த/g, 'kurai');
+    q = q.replace(/கம்மியா/g, 'kurai');
+    q = q.replace(/கம்மி/g, 'kurai');
 
-    q = q.replace(/\bkammiyaga\b/gi, 'kammi');
-    q = q.replace(/\bkammiya\b/gi, 'kammi');
+    // Spoken variations for products / items
+    q = q.replace(/\bporutkal\b/gi, 'porul');
+    q = q.replace(/\bporulgal\b/gi, 'porul');
+    q = q.replace(/\bporulkal\b/gi, 'porul');
+    q = q.replace(/\bporulgan\b/gi, 'porul');
+    q = q.replace(/\bporur\b/gi, 'porul');
+    q = q.replace(/\bitems\b/gi, 'porul');
+    q = q.replace(/\bitem\b/gi, 'porul');
+    q = q.replace(/\bproducts\b/gi, 'porul');
+    q = q.replace(/\bproduct\b/gi, 'porul');
+    q = q.replace(/பொருள்கள்/g, 'porul');
+    q = q.replace(/பொருட்கள்/g, 'porul');
+    q = q.replace(/பொருள்/g, 'porul');
+    q = q.replace(/பொருட்களின்/g, 'porul');
+    q = q.replace(/பொருட்களை/g, 'porul');
 
-    q = q.replace(/\binniku\b/gi, 'innaiku');
-    q = q.replace(/\bindrai\b/gi, 'innaiku');
-
+    // Spoken variations for quantity / how much
     q = q.replace(/\bevalo\b/gi, 'evlo');
     q = q.replace(/\bevvalavu\b/gi, 'evlo');
+    q = q.replace(/\bevalavu\b/gi, 'evlo');
 
+    // Spoken variations for buying / restocking / vaanganum
+    q = q.replace(/\bvaanganum\b/gi, 'vaanganum');
+    q = q.replace(/\bvaanganam\b/gi, 'vaanganum');
+    q = q.replace(/\bvaanganung\b/gi, 'vaanganum');
+    q = q.replace(/\bvaanga\b/gi, 'vaanganum');
+    q = q.replace(/வாங்கணும்/g, 'vaanganum');
+    q = q.replace(/வாங்க\s+வேண்டும்/g, 'vaanganum');
+    q = q.replace(/வாங்கவேண்டும்/g, 'vaanganum');
+    q = q.replace(/வாங்க/g, 'vaanganum');
+
+    // Spoken variations for verbs / reorder
+    q = q.replace(/\bre\s+order\b/gi, 'reorder');
+    q = q.replace(/\bre-order\b/gi, 'reorder');
+    q = q.replace(/\bpannanam\b/gi, 'pannanum');
+    q = q.replace(/\bpannanu\b/gi, 'pannanum');
+    q = q.replace(/\bpanna\s+vendum\b/gi, 'pannanum');
+    q = q.replace(/\bpanna\s+vendiya\b/gi, 'pannanum');
     q = q.replace(/\bvenum\b/gi, 'vendum');
     q = q.replace(/\bvenumaa\b/gi, 'vendum');
 
-    q = q.replace(/\bkaamikka\b/gi, 'kaattu');
-    q = q.replace(/\bkamika\b/gi, 'kaattu');
-    q = q.replace(/\bkaatu\b/gi, 'kaattu');
+    // Spoken variations for time / today
+    q = q.replace(/\binniku\b/gi, 'today');
+    q = q.replace(/\binnaiku\b/gi, 'today');
+    q = q.replace(/\bindrai\b/gi, 'today');
+    q = q.replace(/\bindraiya\b/gi, 'today');
+    q = q.replace(/\bindraya\b/gi, 'today');
+    q = q.replace(/\bindru\b/gi, 'today');
+    q = q.replace(/இன்றைய/g, 'today');
+    q = q.replace(/இன்று/g, 'today');
 
-    q = q.replace(/\baachhu\b/gi, 'aachu');
+    // Spoken variations for sales / virpana
+    q = q.replace(/\bvirpanai\b/gi, 'virpana');
+    q = q.replace(/\bvirkappattadhu\b/gi, 'virpana');
+    q = q.replace(/\bvirkkirathu\b/gi, 'virpana');
+    q = q.replace(/\bvirkkum\b/gi, 'virpana');
+    q = q.replace(/\bvikkuthu\b/gi, 'virpana');
+    q = q.replace(/\baaguthu\b/gi, 'virpana');
+    q = q.replace(/\bnadanthadhu\b/gi, 'virpana');
+    q = q.replace(/விற்பனை/g, 'virpana');
+    q = q.replace(/விற்பனையாகும்/g, 'virpana');
+    q = q.replace(/விற்கிறது/g, 'virpana');
+    q = q.replace(/விற்ற/g, 'virpana');
+    q = q.replace(/நடந்தது/g, 'virpana');
 
-    // 2. Tamil Unicode words (no \b because \b only matches ASCII \w)
-    q = q.replace(/குறைவாக/gi, 'kurai');
-    q = q.replace(/குறைந்த/gi, 'kurai');
-    q = q.replace(/குறைவு/gi, 'kurai');
-    q = q.replace(/இருக்கிறது/gi, 'irukku');
-    q = q.replace(/இருக்கு/gi, 'irukku');
-    q = q.replace(/விற்கிறது/gi, 'virpana');
-    q = q.replace(/லாபம்/gi, 'labam');
-    q = q.replace(/விற்பனை/gi, 'virpana');
+    // Spoken variations for critical
+    q = q.replace(/\bromba\s+kammi\b/gi, 'romba kurai');
+    q = q.replace(/\bromba\s+kammiya\b/gi, 'romba kurai');
+    q = q.replace(/\bmigavum\s+kurai\b/gi, 'romba kurai');
+    q = q.replace(/ரொம்ப\s+குறைவாக/g, 'romba kurai');
+    q = q.replace(/மிகவும்\s+குறைவு/g, 'romba kurai');
 
-    return q;
+    // Spoken variations for profit / labam
+    q = q.replace(/லாபம்/g, 'profit');
+    q = q.replace(/\blabam\b/gi, 'profit');
+    q = q.replace(/\bvandhirukku\b/gi, 'profit');
+
+    // Spoken variations for shop summary
+    q = q.replace(/\ben\s+kadai\s+eppadi\b/gi, 'kadai summary');
+    q = q.replace(/\bkadai\s+eppadi\b/gi, 'kadai summary');
+    q = q.replace(/\bshop\s+summary\b/gi, 'kadai summary');
+    q = q.replace(/\bkadai\s+summary\b/gi, 'kadai summary');
+    q = q.replace(/\bshop\s+oda\s+summary\b/gi, 'kadai summary');
+    q = q.replace(/கடை\s+summary/g, 'kadai summary');
+    q = q.replace(/கடை\s+நிலை/g, 'kadai summary');
+    q = q.replace(/கடை\s+விவரம்/g, 'kadai summary');
+
+    return q.replace(/\s+/g, ' ').trim();
   }
 
   /**
-   * Processes natural language retail queries (English, Tamil Unicode, & Tanglish) and maps them to dynamic inventory intents.
+   * Processes natural language retail queries (English, Tamil Unicode, Tanglish, and Mixed Tamil-English)
+   * using semantic-style intent scoring with language-consistent responses.
    */
   public static processQuery(
     rawQuery: string,
@@ -89,22 +196,124 @@ export class AIService {
     const rawLower = rawQuery.toLowerCase().trim();
     const query = this.normalizeQuery(rawQuery);
 
-    const isTamilQuery = lang === 'ta' ||
-      /[\u0B80-\u0BFF]/.test(rawQuery) ||
-      /\b(porul|porutkal|kammi|kammiya|kurai|kuraiya|kuraivaga|kuraiva|koraiya|kurawar|irukku|iruku|irukkuthu|irukuthu|irukkirathu|irukirathu|irukkathu|irukkum|vanthurukku|pannanum|vendum|venum|venumaa|virpana|labam|kadai|evvalavu|evalavu|evlo|edhai|ethu|enna|ena|kaattu|kaamikka|kamika|kaatu|indha|entha|madhippu|vaangiyavai|innaiku|inniku|aachu)\b/i.test(query);
+    // 1. Check for Tamil script
+    const hasTamilScript = /[\u0B80-\u0BFF]/.test(rawQuery);
 
-    const effectiveLang: 'en' | 'ta' = isTamilQuery ? 'ta' : 'en';
+    // 2. Check for Tanglish indicator tokens/phrases directly on raw user query
+    const isTanglish = /\b(porul|porutkal|porulgal|porur|kammi|kammiya|kammiyaga|kurai|kuraiya|kuraiyava|kuraiyaga|kuraivaga|kuraiva|korai|koraiya|irukku|irukura|irukkura|irukuthu|irukkuthu|irukirathu|irukkirathu|irukkathu|ullana|ullathu|pannanum|pannanam|pannanu|vendum|venum|venumaa|virpana|virpanai|labam|kadai|evvalavu|evalavu|evlo|edhai|ethai|ethu|enna|ena|kaattu|kaamikka|kamika|kaatu|indha|entha|madhippu|vaangiyavai|vaanginadhu|kolmudhal|innaiku|inniku|aachu|adhigam|adhigama|adhigamaga|viniyogisthar|eppadi|virkkirathu|vikkuthu|sollu|poguthu|vaanganum|kadaiyila)\b/i.test(rawLower) ||
+      /\b(reorder panna|low stock la|stock la|kammiya irukku|kuraiyava irukku|kuraiva irukku|nalla sell|romba kammi)\b/i.test(rawLower);
 
-    // 1. Shop Executive Summary Intent
-    if (
-      query.includes('summary') ||
-      query.includes('overview') ||
-      query.includes('health') ||
-      query.includes('shop status') ||
-      rawLower.includes('கடை summary') ||
-      query.includes('kadai summary') ||
-      rawLower.includes('கடை விவரம்')
-    ) {
+    // 3. Check if query is purely English
+    const isPureEnglish = !hasTamilScript && !isTanglish && /^[a-z0-9\s\?\.\,\!\-\:\;\(\)\'\"]+$/i.test(rawQuery.trim());
+
+    // 4. Dynamic response language determination:
+    // Rule: Tamil script, Tanglish, or mixed Tamil-English -> 'ta'
+    // Rule: Pure English -> 'en'
+    const effectiveLang: 'en' | 'ta' = (hasTamilScript || isTanglish) ? 'ta' : (isPureEnglish ? 'en' : (lang === 'ta' ? 'ta' : 'en'));
+
+    // Semantic Intent Scoring System
+    interface IntentScore {
+      intent: string;
+      score: number;
+    }
+
+    const scores: IntentScore[] = [];
+
+    // --- Intent 1: SHOP_SUMMARY ---
+    let summaryScore = 0;
+    if (query.includes('kadai summary') || query.includes('summary') || query.includes('overview') || query.includes('health') || query.includes('shop status') || rawLower.includes('கடை summary') || rawLower.includes('கடை விவரம்')) {
+      summaryScore += 10;
+    }
+    if (query.includes('eppadi') || query.includes('poguthu')) summaryScore += 5;
+    if (summaryScore > 0) scores.push({ intent: 'CHECK_SHOP_SUMMARY', score: summaryScore });
+
+    // --- Intent 2: CHECK_CRITICAL_STOCK ---
+    let criticalScore = 0;
+    if (query.includes('critical') || query.includes('romba kurai') || query.includes('romba') || query.includes('avasaram') || query.includes('urgent') || rawLower.includes('அவசரம்')) {
+      criticalScore += 12;
+    }
+    if (criticalScore > 0) scores.push({ intent: 'CHECK_CRITICAL_STOCK', score: criticalScore });
+
+    // --- Intent 3: RESTOCK_REQUIRED ---
+    let restockScore = 0;
+    if (query.includes('reorder') || query.includes('restock') || query.includes('what to buy') || query.includes('meendum vaanga') || query.includes('vaanga venduma') || query.includes('vaanganum')) {
+      restockScore += 12;
+    }
+    if (query.includes('pannanum') && (query.includes('enna') || query.includes('ethai') || query.includes('porul') || query.includes('item'))) {
+      restockScore += 10;
+    }
+    if (restockScore > 0) scores.push({ intent: 'RESTOCK_REQUIRED', score: restockScore });
+
+    // --- Intent 4: CHECK_LOW_STOCK ---
+    let lowStockScore = 0;
+    if (query.includes('kurai') || query.includes('low stock') || query.includes('low')) {
+      lowStockScore += 10;
+    }
+    if (query.includes('porul') && query.includes('kurai')) {
+      lowStockScore += 5;
+    }
+    // Penalties to prevent false positive matching when user specifically asked for critical or restock
+    if (query.includes('reorder') || query.includes('restock') || query.includes('vaanganum')) lowStockScore -= 15;
+    if (query.includes('critical') || query.includes('romba kurai') || query.includes('romba')) lowStockScore -= 15;
+    if (lowStockScore > 0) scores.push({ intent: 'CHECK_LOW_STOCK', score: lowStockScore });
+
+    // --- Intent 5: CHECK_TOP_SELLING ---
+    let topSellingScore = 0;
+    if (query.includes('top selling') || query.includes('best selling') || query.includes('most popular') || query.includes('top product') || query.includes('best product') || query.includes('top sales') || query.includes('sell most') || (query.includes('sell') && (query.includes('most') || query.includes('best') || query.includes('top')))) {
+      topSellingScore += 12;
+    }
+    if (query.includes('adhigam') && (query.includes('virpana') || query.includes('sell') || query.includes('porul'))) {
+      topSellingScore += 12;
+    }
+    if (query.includes('nalla sell')) topSellingScore += 10;
+    if (topSellingScore > 0) scores.push({ intent: 'CHECK_TOP_SELLING', score: topSellingScore });
+
+    // --- Intent 6: CHECK_INVENTORY_VALUE ---
+    let inventoryScore = 0;
+    if (query.includes('inventory value') || query.includes('stock value') || query.includes('valuation') || query.includes('sarakku mathippu') || query.includes('mathippu') || rawLower.includes('சரக்கு மதிப்பு')) {
+      inventoryScore += 12;
+    }
+    if (inventoryScore > 0) scores.push({ intent: 'CHECK_INVENTORY_VALUE', score: inventoryScore });
+
+    // --- Intent 7: CHECK_PROFIT ---
+    let profitScore = 0;
+    if (query.includes('profit') || query.includes('margin') || query.includes('earnings') || rawLower.includes('லாபம்')) {
+      profitScore += 12;
+    }
+    if (profitScore > 0) scores.push({ intent: 'CHECK_PROFIT', score: profitScore });
+
+    // --- Intent 8: CHECK_PURCHASES ---
+    let purchaseScore = 0;
+    if (query.includes('recent purchase') || query.includes('purchases') || query.includes('bought') || query.includes('stock in') || query.includes('kolmudhal') || query.includes('vaangiyavai') || query.includes('vaanginadhu') || rawLower.includes('கொள்முதல்')) {
+      purchaseScore += 12;
+    }
+    if (purchaseScore > 0) scores.push({ intent: 'CHECK_PURCHASES', score: purchaseScore });
+
+    // --- Intent 9: CHECK_SUPPLIERS ---
+    let supplierScore = 0;
+    if (query.includes('supplier') || query.includes('suppliers') || query.includes('vendor') || query.includes('vendors') || query.includes('viniyogisthar') || query.includes('sablaiyar') || rawLower.includes('சப்ளையர்')) {
+      supplierScore += 12;
+    }
+    if (supplierScore > 0) scores.push({ intent: 'CHECK_SUPPLIERS', score: supplierScore });
+
+    // --- Intent 10: CHECK_TODAY_SALES ---
+    let todaySalesScore = 0;
+    if (query.includes('today sales') || query.includes('sales today') || (query.includes('sales') && (query.includes('today') || query.includes('evlo') || query.includes('virpana') || query.includes('aachu')))) {
+      todaySalesScore += 12;
+    }
+    if (query.includes('virpana') && (query.includes('today') || query.includes('evlo') || query.includes('aachu'))) {
+      todaySalesScore += 12;
+    }
+    if (todaySalesScore > 0) scores.push({ intent: 'CHECK_TODAY_SALES', score: todaySalesScore });
+
+    // Rank candidate intents by highest score
+    scores.sort((a, b) => b.score - a.score);
+    const winningIntent = scores.length > 0 && scores[0].score >= 5 ? scores[0].intent : null;
+
+    // --- Execute Winning Intent ---
+
+    // 1. Executive Summary Intent
+    if (winningIntent === 'CHECK_SHOP_SUMMARY') {
       const totalUnits = products.reduce((sum, p) => sum + p.quantity, 0);
       const retailValuation = products.reduce((sum, p) => sum + (p.quantity * p.sellingPrice), 0);
       const criticalCount = products.filter(p => p.status === 'CRITICAL').length;
@@ -132,7 +341,7 @@ export class AIService {
     }
 
     // 2. Critical Stock Intent
-    if (query.includes('critical') || query.includes('urgent') || rawLower.includes('அவசரம்')) {
+    if (winningIntent === 'CHECK_CRITICAL_STOCK') {
       const criticalProducts = products.filter(p => p.status === 'CRITICAL');
       if (criticalProducts.length === 0) {
         return {
@@ -157,19 +366,8 @@ export class AIService {
       };
     }
 
-    // 3. Reorder / Restock Intent (Check before Low Stock so "reorder pannanum" resolves to restock recommendation)
-    if (
-      query.includes('reorder') ||
-      query.includes('restock') ||
-      query.includes('what to buy') ||
-      query.includes('pannanum') ||
-      query.includes('vendum') ||
-      query.includes('edhai reorder') ||
-      query.includes('enna reorder') ||
-      rawLower.includes('எதை reorder') ||
-      rawLower.includes('என்ன reorder') ||
-      rawLower.includes('reorder செய்ய')
-    ) {
+    // 3. Reorder / Restock Intent
+    if (winningIntent === 'RESTOCK_REQUIRED') {
       const lowProducts = products.filter(p => p.status === 'LOW');
       const criticalProducts = products.filter(p => p.status === 'CRITICAL');
       const totalAttention = lowProducts.length + criticalProducts.length;
@@ -199,18 +397,14 @@ export class AIService {
       };
     }
 
-    // 4. Low Stock Intent (explicit low stock check)
-    if (
-      (query.includes('low') || query.includes('kammi') || query.includes('kurai') || rawLower.includes('குறைவாக') || rawLower.includes('குறைந்த') || rawLower.includes('குறைவு')) &&
-      !query.includes('reorder') &&
-      !query.includes('restock')
-    ) {
+    // 4. Low Stock Intent
+    if (winningIntent === 'CHECK_LOW_STOCK') {
       const lowProducts = products.filter(p => p.status === 'LOW');
       if (lowProducts.length === 0) {
         return {
           intent: 'CHECK_LOW_STOCK',
           text: effectiveLang === 'ta'
-            ? 'குறைந்த இருப்பில் உள்ள பொருட்கள் ஏதும் இல்லை! அனைத்து பொருட்களும் போதிய அளவில் உள்ளன.'
+            ? 'குறைவாக உள்ள பொருட்கள் ஏதும் இல்லை! அனைத்து பொருட்களும் போதிய அளவில் உள்ளன.'
             : 'No low stock items! All inventory levels are above low stock thresholds.',
           shortText: effectiveLang === 'ta' ? '0 குறைந்த இருப்பு பொருட்கள்.' : '0 low stock products.',
           lang: effectiveLang
@@ -220,8 +414,8 @@ export class AIService {
       return {
         intent: 'CHECK_LOW_STOCK',
         text: effectiveLang === 'ta'
-          ? `${lowProducts.length} பொருள்(கள்) குறைந்த இருப்பில் உள்ளன: ${names}.`
-          : `${lowProducts.length} product(s) are low in stock: ${names}.`,
+          ? `குறைவாக உள்ள பொருட்கள்: ${names}.`
+          : `These products are low in stock: ${names}.`,
         shortText: effectiveLang === 'ta'
           ? `${lowProducts.length} குறைந்த இருப்பு பொருட்கள்.`
           : `${lowProducts.length} low stock items.`,
@@ -230,17 +424,7 @@ export class AIService {
     }
 
     // 5. Top Selling Products Intent
-    if (
-      query.includes('top selling') ||
-      query.includes('best selling') ||
-      query.includes('most popular') ||
-      query.includes('top product') ||
-      query.includes('best product') ||
-      rawLower.includes('அதிகமாக விற்ற') ||
-      rawLower.includes('அதிகமாக விற்கிறது') ||
-      query.includes('adhigamaga virpana') ||
-      query.includes('adhigam virpana')
-    ) {
+    if (winningIntent === 'CHECK_TOP_SELLING') {
       if (sales.length === 0) {
         return {
           intent: 'CHECK_TOP_SELLING',
@@ -277,15 +461,7 @@ export class AIService {
     }
 
     // 6. Inventory Valuation Intent
-    if (
-      query.includes('inventory value') ||
-      query.includes('stock value') ||
-      query.includes('valuation') ||
-      query.includes('value do i have') ||
-      query.includes('how much inventory') ||
-      rawLower.includes('சரக்கு மதிப்பு') ||
-      query.includes('madhippu')
-    ) {
+    if (winningIntent === 'CHECK_INVENTORY_VALUE') {
       const retailValuation = products.reduce((sum, p) => sum + (p.quantity * p.sellingPrice), 0);
       const costValuation = products.reduce((sum, p) => sum + (p.quantity * p.purchasePrice), 0);
       const totalUnits = products.reduce((sum, p) => sum + p.quantity, 0);
@@ -303,20 +479,14 @@ export class AIService {
     }
 
     // 7. Profit & Margin Intent
-    if (
-      query.includes('profit') ||
-      query.includes('margin') ||
-      query.includes('earnings') ||
-      query.includes('labam') ||
-      rawLower.includes('லாபம்')
-    ) {
+    if (winningIntent === 'CHECK_PROFIT') {
       if (sales.length === 0) {
         const potentialValuation = products.reduce((sum, p) => sum + (p.quantity * p.sellingPrice), 0);
         return {
           intent: 'CHECK_PROFIT',
           text: effectiveLang === 'ta'
-            ? `விற்பனை ஏதும் பதிவு செய்யப்படவில்லை. தற்போதைய இருப்பின் விற்பனை திறன்: ₹${potentialValuation.toLocaleString('en-IN')}.`
-            : `No sales transactions recorded yet. Current inventory has a total retail sales potential of ₹${potentialValuation.toLocaleString('en-IN')}.`,
+            ? 'விற்பனை ஏதும் பதிவு செய்யப்படவில்லை. தற்போதைய இருப்பின் விற்பனை திறன்: ₹' + potentialValuation.toLocaleString('en-IN') + '.'
+            : 'No sales transactions recorded yet. Current inventory has a total retail sales potential of ₹' + potentialValuation.toLocaleString('en-IN') + '.',
           shortText: effectiveLang === 'ta' ? 'விற்பனை ஏதும் இல்லை.' : 'No sales recorded yet.',
           lang: effectiveLang
         };
@@ -344,15 +514,8 @@ export class AIService {
       };
     }
 
-    // 8. Purchases & Replenishment Log Intent
-    if (
-      query.includes('recent purchase') ||
-      query.includes('purchases') ||
-      query.includes('bought') ||
-      query.includes('stock in') ||
-      rawLower.includes('கொள்முதல்') ||
-      query.includes('vaangiyavai')
-    ) {
+    // 8. Purchases Intent
+    if (winningIntent === 'CHECK_PURCHASES') {
       if (purchases.length === 0) {
         return {
           intent: 'CHECK_PURCHASES',
@@ -379,12 +542,8 @@ export class AIService {
       };
     }
 
-    // 9. Suppliers & Vendors Intent
-    if (
-      query.includes('supplier') ||
-      query.includes('vendor') ||
-      rawLower.includes('சப்ளையர்')
-    ) {
+    // 9. Suppliers Intent
+    if (winningIntent === 'CHECK_SUPPLIERS') {
       if (suppliers.length === 0) {
         return {
           intent: 'CHECK_SUPPLIERS',
@@ -410,16 +569,7 @@ export class AIService {
     }
 
     // 10. Today's Sales Intent
-    if (
-      query.includes('sale') ||
-      query.includes('revenue') ||
-      query.includes('sold') ||
-      query.includes('virpana') ||
-      query.includes('innaiku') ||
-      query.includes('aachu') ||
-      rawLower.includes('விற்பனை') ||
-      (rawLower.includes('இன்று') && (query.includes('sale') || query.includes('virpana') || rawLower.includes('விற்பனை')))
-    ) {
+    if (winningIntent === 'CHECK_TODAY_SALES') {
       const today = new Date().toDateString();
       const todaySales = sales.filter(s => new Date(s.timestamp).toDateString() === today);
       const totalRev = todaySales.reduce((sum, s) => sum + s.totalAmount, 0);
@@ -436,12 +586,12 @@ export class AIService {
       };
     }
 
-    // 11. Specific Product Search Intent (Filter out Tanglish/English stop words)
+    // 11. Specific Product Search Intent
     const stopWords = new Set([
       'in', 'the', 'is', 'are', 'what', 'which', 'how', 'show', 'my', 'many', 'much', 'of', 'for', 'to', 'do', 'i', 'have',
       'entha', 'porul', 'porutkal', 'products', 'product', 'stock', 'ethu', 'edhai', 'enna', 'irukku', 'kammi', 'kurai',
       'pannanum', 'vendum', 'kadai', 'labam', 'virpana', 'irukkirathu', 'irukkathu', 'kurawar', 'kuraiya', 'kuraiyaga',
-      'kuraivaga', 'kammiya', 'kammiyaga', 'kaattu', 'item', 'items', 'status', 'level', 'levels', 'innaiku', 'evlo', 'aachu'
+      'kuraivaga', 'kammiya', 'kammiyaga', 'kaattu', 'item', 'items', 'status', 'level', 'levels', 'innaiku', 'evlo', 'aachu', 'today'
     ]);
 
     const queryWords = query.split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));

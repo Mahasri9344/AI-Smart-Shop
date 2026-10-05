@@ -10,7 +10,7 @@ export type VoiceState = 'idle' | 'listening' | 'processing' | 'error';
 
 export interface VoiceRecognitionCallbacks {
   onStateChange: (state: VoiceState) => void;
-  onResult: (transcript: string) => void;
+  onResult: (transcript: string, isFinal?: boolean) => void;
   onError: (errorMessage: string) => void;
 }
 
@@ -86,10 +86,13 @@ export class VoiceService {
 
     this.recognition.onresult = (event: any) => {
       let interimTranscript = '';
+      let hasFinal = false;
+
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         const transcriptPart = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
           accumulatedFinalTranscript += transcriptPart;
+          hasFinal = true;
         } else {
           interimTranscript += transcriptPart;
         }
@@ -97,7 +100,8 @@ export class VoiceService {
 
       const activeText = accumulatedFinalTranscript || interimTranscript;
       if (activeText && activeText.trim().length > 0 && this.callbacks) {
-        this.callbacks.onResult(activeText.trim());
+        // Pass isFinal flag to prefer final speech results over transient interim chunks
+        this.callbacks.onResult(activeText.trim(), hasFinal);
       }
     };
 
